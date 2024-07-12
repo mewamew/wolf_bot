@@ -1,0 +1,28 @@
+{
+    "models": [
+        {
+            "name": "qwen-max",
+            "api_key": "API KEY"
+        },
+        {
+            "name": "deepseek-chat",
+            "api_key": "API KEY"
+        },
+        {
+            "name": "Claude-3.5-Sonnet",
+            "api_key": "API KEY"
+        },
+        {
+            "name": "Baichuan4",
+            "api_key": "API KEY"
+        },
+        {
+            "name": "GPT-4o",
+            "api_key": "API KEY"
+        },
+        {
+            "name": "Gemini-1.5-Pro",
+            "api_key": "API KEY"
+        }
+    ]
+}

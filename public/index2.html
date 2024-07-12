@@ -1,0 +1,265 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Werewolf Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #log {
+            white-space: pre-wrap;
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+            height: 400px;
+            overflow-y: scroll;
+        }
+        .button {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Werewolf Game</h1>
+    <div id="log"></div>
+    <button class="button" onclick="startGame()">Start Game</button>
+    <button class="button" onclick="dayPhase()">Day Phase</button>
+    <button class="button" onclick="nightPhase()">Night Phase</button>
+
+    <script>
+        const logDiv = document.getElementById('log');
+
+        function log(message) {
+            logDiv.innerText += message + '\n';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        async function startGame() {
+            const response = await fetch('/start', { method: 'POST' });
+            const data = await response.json();
+            log(data.message);
+        }
+
+        async function dayPhase() {
+            log("== Day Phase ==");
+            await showPlayersStatus();
+            await speak();
+            await vote();
+            await execute();
+            await checkGameWinner();
+            await toggleDayNight();
+        }
+
+        async function nightPhase() {
+            log("== Night Phase ==");
+            await divine();
+            await decideKill();
+            await kill();
+            await checkGameWinner();
+            await toggleDayNight();
+        }
+
+        async function showPlayersStatus() {
+            const response = await fetch('/status');
+            const players = await response.json();
+            log("------- Players Status -------");
+            let villagerCount = 0;
+            let werewolfCount = 0;
+            for (const player of Object.values(players)) {
+                const status = player.is_alive ? 'Alive' : 'Dead';
+                log(`${player.name} ${status}`);
+                if (player.is_alive) {
+                    if (player.role_type === '狼人') {
+                        werewolfCount++;
+                    } else {
+                        villagerCount++;
+                    }
+                }
+            }
+            log(`Alive Villagers: ${villagerCount}`);
+            log(`Alive Werewolves: ${werewolfCount}`);
+            log("------------------------------");
+        }
+
+        async function checkGameWinner() {
+            const response = await fetch('/check_winner');
+            const data = await response.json();
+            if (data.winner !== "胜负未分") {
+                log(`>>>> Game Over, ${data.winner} <<<<`);
+                await showPlayersStatus();
+                throw new Error("Game Over");
+            } else {
+                log(">>>> Game Continues <<<<");
+                await showPlayersStatus();
+            }
+        }
+
+        async function speak() {
+            log(">>> Speaking Phase <<<");
+            const response = await fetch('/status');
+            const players = await response.json();
+            for (const player of Object.values(players)) {
+                if (player.is_alive) {
+                    const action = { player_idx: player.index };
+                    const result = await fetch('/speak', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(action)
+                    });
+                    const data = await result.json();
+                    if (data.thinking) {
+                        log(`${player.name} Thinking: ${data.thinking}`);
+                    }
+                    if (data.speak) {
+                        log(`${player.name} Speaking: ${data.speak}`);
+                    }
+                }
+            }
+        }
+
+        async function vote() {
+            const response = await fetch('/status');
+            const players = await response.json();
+            const day = await fetch('/status');
+            const dayData = await day.json();
+            if (dayData.current_day === 1) {
+                log(">>> Day 1, Skipping Voting Phase <<<");
+                return;
+            }
+            log(">>> Voting Phase <<<");
+            await showPlayersStatus();
+            for (const player of Object.values(players)) {
+                if (player.is_alive) {
+                    const action = { player_idx: player.index };
+                    const result = await fetch('/vote', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(action)
+                    });
+                    const data = await result.json();
+                    if (data.thinking) {
+                        log(`${player.name} Thinking: ${data.thinking}`);
+                    }
+                    log(`${player.name} Voted to Execute: ${players[data.vote].name}`);
+                }
+            }
+            log("Voting Results:");
+            const voteResult = await fetch('/status');
+            const voteData = await voteResult.json();
+            for (const [voteId, voteCount] of Object.entries(voteData.vote_result)) {
+                log(`Player ${voteId} received ${voteCount} votes`);
+            }
+        }
+
+        async function execute() {
+            const response = await fetch('/status');
+            const players = await response.json();
+            const votes = await fetch('/status');
+            const voteData = await votes.json();
+            const maxVotes = Math.max(...Object.values(voteData.vote_result));
+            const votedOut = Object.keys(voteData.vote_result).filter(player => voteData.vote_result[player] === maxVotes);
+            if (votedOut.length > 1) {
+                log("Multiple players received the same number of votes, no one is executed");
+            } else {
+                const votedOutPlayer = votedOut[0];
+                log(`${players[votedOutPlayer].name} is executed!`);
+                const action = { player_idx: parseInt(votedOutPlayer) };
+                await fetch('/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(action)
+                });
+                await lastWords(parseInt(votedOutPlayer), "Executed by vote");
+            }
+        }
+
+        async function lastWords(playerIdx, deathReason) {
+            const response = await fetch('/status');
+            const players = await response.json();
+            const action = { player_idx: playerIdx, death_reason: deathReason };
+            const result = await fetch('/last_words', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(action)
+            });
+            const data = await result.json();
+            if (data.thinking) {
+                log(`${players[playerIdx].name} Thinking: ${data.thinking}`);
+            }
+            if (data.speak) {
+                log(`${players[playerIdx].name} Last Words: ${data.speak}`);
+            }
+            if (data.attack !== -1) {
+                log(`${players[playerIdx].name} Attacks ${players[data.attack].name}`);
+                await fetch('/attack', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ player_idx: data.attack })
+                });
+                await lastWords(data.attack, "Attacked by Hunter");
+            }
+        }
+
+        async function divine() {
+            const response = await fetch('/status');
+            const players = await response.json();
+            const seers = Object.values(players).filter(player => player.role_type === "预言家" && player.is_alive);
+            if (seers.length === 0) {
+                log("== The Seer is dead, skipping divination phase ==");
+                return;
+            }
+            log("== The Seer starts divination ==");
+            const action = { player_idx: seers[0].index };
+            const result = await fetch('/divine', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(action)
+            });
+            const data = await result.json();
+            if (data.thinking) {
+                log(`${players[seers[0].index].name} Thinking: ${data.thinking}`);
+            }
+            if (data.divine) {
+                log(`${players[seers[0].index].name} Reveals the identity of ${players[data.divine].name}`);
+            }
+        }
+
+        async function decideKill() {
+            log("== The Werewolves start choosing their victim ==");
+            const response = await fetch('/status');
+            const players = await response.json();
+            const wolves = Object.values(players).filter(player => player.role_type === "狼人" && player.is_alive);
+            const action = { player_idx: wolves[0].index };
+            const result = await fetch('/decide_kill', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(action)
+            });
+            const data = await result.json();
+            log(`${players[wolves[0].index].name} Decides to kill ${players[data.kill].name}`);
+        }
+
+        async function kill() {
+            log("== The Werewolves start killing ==");
+            const response = await fetch('/status');
+            const players = await response.json();
+            const action = { player_idx: players[0].index };
+            const result = await fetch('/kill', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(action)
+            });
+            const data = await result.json();
+            log(`${players[data.kill].name} is killed!`);
+            await lastWords(data.kill, "Killed by Werewolves");
+        }
+
+        async function toggleDayNight() {
+            await fetch('/toggle_day_night', { method: 'POST' });
+            log("Day/Night toggled");
+        }
+    </script>
+</body>
+</html>
