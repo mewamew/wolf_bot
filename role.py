@@ -6,14 +6,13 @@ import json
 import time
 
 class BaseRole:
-    def __init__(self, player_index, role_type, model_name, api_key, style, game):
+    def __init__(self, player_index, role_type, model_name, api_key, game):
         self.player_index = player_index
         self.role_type = role_type
         self.is_alive = True
         self.game = game
-        self.model = BuildModel(model_name, api_key, force_json=True)
-        self.style = style
-        print_white(f"{self.player_index}号玩家的角色是{self.role_type}, 说话风格是{self.style}")
+        self.model = BuildModel(model_name, api_key, force_json=True) 
+        print_white(f"{self.player_index}号玩家的角色是{self.role_type}")
 
     def __str__(self):
         return f"玩家编号: {self.player_index}, 角色类型: {self.role_type}"
@@ -38,8 +37,7 @@ class BaseRole:
         prompt_template['player_index'] = f"你是{self.player_index}号玩家"
         prompt_template['curr_state'] = self.game.history.get_history()
         prompt_template['players_state'] = self.get_players_state()
-        prompt_template['style'] = f"你的风格是{self.style}"
-        prompt_template['发言要求'] = f"你不能说超过3句话,尽量口语化不要太正式"
+        prompt_template['发言要求'] = f"你不能说超过3句话"
         return prompt_template
 
     def handle_action(self, prompt_file, extra_data=None, retry_count=0):
@@ -122,12 +120,12 @@ class BaseRole:
     
         
 class Villager(BaseRole):
-    def __init__(self, player_index, model_name, api_key, style, game):
-        super().__init__(player_index, "村民", model_name, api_key, style, game)
+    def __init__(self, player_index, model_name, api_key,  game):
+        super().__init__(player_index, "村民", model_name, api_key, game)
     
 class Hunter(BaseRole):
-    def __init__(self, player_index, model_name, api_key, style, game):
-        super().__init__(player_index, "猎人", model_name, api_key, style, game)
+    def __init__(self, player_index, model_name, api_key,  game):
+        super().__init__(player_index, "猎人", model_name, api_key,  game)
     
     def last_words(self, death_reason):
         """发表遗言(死后)"""
@@ -143,8 +141,8 @@ class Hunter(BaseRole):
 
 
 class Seer(BaseRole):
-    def __init__(self, player_index, model_name, api_key, style, game):
-        super().__init__(player_index, "预言家", model_name, api_key, style, game)
+    def __init__(self, player_index, model_name, api_key, game):
+        super().__init__(player_index, "预言家", model_name, api_key, game)
         self.divine_result = []
 
     def make_extra_data(self):
@@ -182,8 +180,8 @@ class Seer(BaseRole):
     
 
 class Wolf(BaseRole):
-    def __init__(self, player_index, model_name, api_key, style, game):
-        super().__init__(player_index, "狼人", model_name, api_key, style, game)
+    def __init__(self, player_index, model_name, api_key,  game):
+        super().__init__(player_index, "狼人", model_name, api_key,  game)
         self.other_wolf = -1
     
     def find_other_wolf(self):
@@ -232,8 +230,8 @@ class Wolf(BaseRole):
 
 
 class Witch(BaseRole):
-    def __init__(self, player_index, model_name, api_key, style, game):
-        super().__init__(player_index, "女巫", model_name, api_key, style, game)
+    def __init__(self, player_index, model_name, api_key,  game):
+        super().__init__(player_index, "女巫", model_name, api_key,  game)
         self.cured_someone = -1
         self.poisoned_someone = -1
     

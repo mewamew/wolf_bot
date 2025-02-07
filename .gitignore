@@ -1,2 +1,4 @@
 __pycache__
 *.txt
+config.json
+test.py

@@ -1,13 +1,11 @@
 from openai import OpenAI
-from pprint import pprint
 from dashscope import Generation
 from http import HTTPStatus
 from zhipuai import ZhipuAI
 import json
-import fastapi_poe
-import asyncio
 import dashscope
 import requests
+import http.client
 
 class BaseLlm():
     def __init__(self, model_name, force_json=False):
@@ -29,31 +27,35 @@ class BaseLlm():
                 resp = resp.replace("```json", "").replace("```", "")
         return resp
     
-
-class PoeLlm(BaseLlm):
+class M302Llm(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False):
         super().__init__(model_name, force_json)
-        '''
-        api_key在下面生成
-        https://poe.com/api_key
-        '''
         self.api_key = api_key
-        
 
-    async def get_response_async(self, message, chat_history=[]):
-        resp=""
-        context = [fastapi_poe.ProtocolMessage(role=msg["role"], content=msg["content"]) for msg in chat_history]
-        context.append(fastapi_poe.ProtocolMessage(role="user", content=message))
-
-        async for partial in fastapi_poe.get_bot_response(messages=context, bot_name=self.model_name, api_key=self.api_key):
-            #print(partial.text, end="", flush=True)
-            resp += partial.text
-        #print('\n')
-        return resp
-    
     def generate(self, message, chat_history=[]):
-        return asyncio.run(self.get_response_async(message, chat_history))
-
+        messages = []
+        for msg in chat_history:
+            if msg["role"] == "bot":
+                messages.append({"role": "assistant", "content": msg["content"]})
+            else:
+                messages.append({"role": "user", "content": msg["content"]})
+        messages.append({"role": "user", "content": message})
+        payload = json.dumps({
+            "model": self.model_name,
+            "reasoning_effort": "high",
+            "messages": messages
+        })
+        conn = http.client.HTTPSConnection("api.302.ai")
+        headers = {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + self.api_key,
+            'Content-Type': 'application/json'
+        }
+        conn.request("POST", "/v1/chat/completions", payload, headers)
+        res = conn.getresponse()
+        data = res.read().decode("utf-8")
+        response = json.loads(data)
+        return response["choices"][0]["message"]["content"]
 
 
 class DeepSeekLlm(BaseLlm):
@@ -81,7 +83,6 @@ class DeepSeekLlm(BaseLlm):
         )
         resp = response.choices[0].message.content
         return resp
-
 
 
 
@@ -201,21 +202,58 @@ class ZhipuLlm(BaseLlm):
                 #print(content, end='', flush=True)
         return full_response
 
+'''
+硅基流动的推理模型: 
+https://api.siliconflow.cn/v1/
+deepseek-ai/DeepSeek-R1
+Pro/deepseek-ai/DeepSeek-R1 (比较快)
+'''
+class SiliconReasoner(BaseLlm):
+    def __init__(self, model_name, api_key, force_json=False):
+        super().__init__(model_name, force_json)
+        self.client = OpenAI(
+                base_url='https://api.siliconflow.cn/v1/',
+                api_key=api_key
+            )
 
-PoeModelList = [
-    "Claude-3.5-Sonnet", 
-    "Claude-3.5-Sonnet-200k", 
-    "GPT-4o",
-    "GPT-4o-128k",
-    "Gemini-1.5-Pro",
-    "Gemini-1.5-Flash",
-    "Gemini-1.5-Pro-128k",
-    "Gemini-1.5-Pro-2M"
-]
+    def generate(self, message, chat_history=[]):
+        messages = [{"role": "user", "content": message}]
+        response = self.client.chat.completions.create(
+            model=self.model_name,
+            messages=messages,
+            stream=True, 
+            max_tokens=4096
+        )
+        content = ""
+        reasoning_content = ""
+        for chunk in response:
+            if chunk.choices[0].delta.content:
+                content += chunk.choices[0].delta.content
+                print(chunk.choices[0].delta.content, end='', flush=True)
+            if chunk.choices[0].delta.reasoning_content:
+                reasoning_content += chunk.choices[0].delta.reasoning_content
+                print(chunk.choices[0].delta.reasoning_content, end='', flush=True)
+        with open('reasoning.txt', 'a', encoding='utf-8') as f:
+            f.write(f'{chunk.choices[0].delta.reasoning_content}\n')
+        return content
+
+
+
+M302LLM_SUPPORTED_MODELS = [
+    "o3-mini",
+    "o3-mini-2025-01-31", 
+    "gemini-2.0-flash-thinking-exp-01-21"]
+
+SILICONFLOW_SUPPORTED_MODELS = [
+    "deepseek-ai/DeepSeek-R1",
+    "Pro/deepseek-ai/DeepSeek-R1"]
+
 
 def BuildModel(model_name, api_key, force_json=False):
-    if model_name in PoeModelList:
-        return PoeLlm(model_name, api_key, force_json)
+    if model_name in M302LLM_SUPPORTED_MODELS:
+        return M302Llm(model_name, api_key, force_json)
+    elif model_name in SILICONFLOW_SUPPORTED_MODELS:
+        return SiliconReasoner(model_name, api_key, force_json)
     elif model_name == "deepseek-chat":
         return DeepSeekLlm(model_name, api_key, force_json)
     elif model_name in ["豆包-Pro-4K", "豆包-Pro-32K", "豆包-Pro-128K"]:
@@ -230,5 +268,3 @@ def BuildModel(model_name, api_key, force_json=False):
         raise ValueError("未知的模型名称:", model_name)
     
     
-
-
