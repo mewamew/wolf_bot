@@ -107,7 +107,7 @@ class Player {
         await this.hide();
     }
 
-    async speak(what, text_color, animate=true) {
+    async speak(what, text_color='0xffffff', animate=true) {
         console.log(`${this.name} 发言: ${what}`);
         await this.animateSpirit(animate);
         this.shakeSpiritSmall(); // 添加抖动效果

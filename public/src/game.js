@@ -49,7 +49,7 @@ class Game {
             if (player.is_alive) {
                 const result = await this.gameData.speak({ player_idx: player.index });
                 await this.players[player.index].think(result.thinking);
-                await this.players[player.index].speak(result.speak, result.text_color, false);
+                await this.players[player.index].speak(result.speak, '0xffffff', false);
             }
         }
     }
@@ -65,7 +65,7 @@ class Game {
             if (player.is_alive) {
                 const result = await this.gameData.vote({ player_idx: player.index });
                 await this.players[player.index].think(result.thinking);
-                await this.players[player.index].speak(`我投票处决: ${result.vote}号玩家`, result.text_color);
+                await this.players[player.index].speak(`我投票处决: ${result.vote}号玩家`, '0xffffff');
                 this.players[result.vote].showVoteCount(result.vote_count, false); // 更新投票数，不隐藏
             }
         }

@@ -14,12 +14,10 @@ curr_state: | #当前的游戏状态
 output_format: |
   {
       "thinking": "思考",
-      "speak": "发言",
-      "text_color": "发言的字体的颜色"
+      "speak": "发言"
   }
-instructions: "请你根据当前情况和你身份进行发言。请确保输出包含 'thinking' ,'speak' ,'text_color',  三个字段。其中text_color要选择最能代表player情绪的颜色, 可选的颜色有#FF0000,#00FF00, #FFFF00, #FFFFFF   示例如下：
+instructions: "请你根据当前情况和你身份进行简短发言。请确保输出包含 'thinking' ,'speak' 两个字段。示例如下：
 {
     'thinking': '我认为狼人可能会在今晚行动。',
     'speak': '大家好，我是预言家，昨晚我查验了2号，他是狼人。',
-    'text_color': '#ffffff'
 }"

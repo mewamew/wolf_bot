@@ -1,5 +1,5 @@
 {
-    "models": [
+    "players": [
         {
             "name": "Pro/deepseek-ai/DeepSeek-R1",
             "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih"
@@ -24,5 +24,9 @@
             "name": "Pro/deepseek-ai/DeepSeek-R1",
             "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih"
         }
-    ]
+    ],
+    "judge": {
+        "model_name": "Pro/deepseek-ai/DeepSeek-R1",
+        "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih"
+    }
 }

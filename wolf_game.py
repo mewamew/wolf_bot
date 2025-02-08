@@ -1,7 +1,9 @@
 from role import *
 from history import *
+from judge import *
 import random
 import json
+
 
 
 class WerewolfGame:
@@ -23,6 +25,7 @@ class WerewolfGame:
         self.current_day = 1  # 游戏开始时,设置为第1天
         self.current_phase = "白天"  # 初始化当前阶段为白天
         self.initialize_roles()
+
         
     def initialize_roles(self):
         # 随机初始化玩家列表
@@ -49,10 +52,12 @@ class WerewolfGame:
         
         # 使用配置文件中的模型和API key
         self.players = [
-            #role(i + 1, config["models"][i]["name"], config["models"][i]["api_key"], styles[i], self) 
-            role(i + 1, config["models"][i]["name"], config["models"][i]["api_key"], self) 
+            role(i + 1, config["players"][i]["name"], config["players"][i]["api_key"], self) 
             for i, role in enumerate(roles)
         ]
+        
+        # 创建判决者
+        self.judge = Judge(self, config["judge"]["model_name"], config["judge"]["api_key"])
 
     def toggle_day_night(self):
         self.history.toggle_day_night()
@@ -145,49 +150,6 @@ class WerewolfGame:
         self.players[player_idx-1].be_poisoned()
     
     def check_winner(self) -> str:
-        n_wolf_alive = 0
-        n_villager_alive = 0
-        n_total_alive = 0
-        hunter = None
-        witch = None
-        for player in self.players:
-            if player.is_alive:
-                n_total_alive += 1
-                if player.role_type == "狼人":
-                    n_wolf_alive += 1
-                else:
-                    n_villager_alive += 1
-                if player.role_type == "猎人":
-                    hunter = player
-                if player.role_type == "女巫":
-                    witch = player
-
-        if n_wolf_alive == 0:
-            return "村民胜利"
-
-        if n_wolf_alive>n_villager_alive:
-            return "狼人胜利"
-        
-        if n_villager_alive == 1:
-            #到了这个分支，狼人一定是剩下一个了
-            #如果猎人被杀可以反击杀死狼人
-            #女巫可以使用毒药毒死狼人
-            #这两种情况都会杀光狼人，达成好人胜利
-            if hunter or (witch and witch.cured_someone == -1): #女巫的毒药技能还没用过
-                return "村民胜利"
-            else:
-                return "狼人胜利"
-
-        if n_villager_alive == 2:
-            #猎人死了和女巫也失效了（包括死掉）
-            #这种情况下要分时间，如果是白天，狼人胜利，因为到了晚上可以杀掉一个村民
-            #或者这种情况下还有两个狼人，狼人也胜利
-            if not hunter and not (witch and witch.poisoned_someone == -1):
-                if n_wolf_alive == 2:
-                    return "狼人胜利"
-                if self.current_phase == "白天":
-                    return "狼人胜利"
-
-        return "胜负未分"
+        return self.judge.decide()
         
     

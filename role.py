@@ -41,27 +41,29 @@ class BaseRole:
         return prompt_template
 
     def handle_action(self, prompt_file, extra_data=None, retry_count=0):
-        resp=""
         with open(prompt_file, 'r', encoding='utf-8') as file:
             prompt_template = yaml.safe_load(file)
             prompt_dict = self.prompt_preprocess(prompt_template)
             if extra_data:
                 prompt_dict.update(extra_data)
+            
             prompt_str = json.dumps(prompt_dict, ensure_ascii=False)
-            try:
-                resp = self.model.get_response(prompt_str)
-                with open('action_log.txt', 'a', encoding='utf-8') as log_file:
-                    log_file.write(f"---Input---:\n {prompt_str}\n")
-                    log_file.write(f"---Output---:\n {resp}\n")
-                return json.loads(resp)
-            except Exception as e:
-                self.error(e, resp)
+            resp = self.model.get_response(prompt_str)
+            
+            # 日志记录保持原样
+            with open('action_log.txt', 'a', encoding='utf-8') as log_file:
+                log_file.write(f"---Input---:\n{prompt_str}\n")
+                log_file.write(f"---Output---:\n{json.dumps(resp, ensure_ascii=False)}\n")
+            
+            if resp is None:
+                self.error("请求失败", prompt_str)
                 if retry_count < 3:
-                    # 如果返回的json出错，说明大模型返回的数据有错，需要重试
                     print_red("重新发起请求")
                     time.sleep(10)
-                    return self.handle_action(prompt_file, extra_data, retry_count=retry_count + 1)
+                    return self.handle_action(prompt_file, extra_data, retry_count+1)
                 return None
+                    
+            return resp
 
     def speak(self, extra_data=None ):
         background = f"您是一名经验丰富的狼人杀玩家,你正在玩的是标准的6人局狼人杀, 你是【{self.player_index}号玩家】, 你扮演的是【{self.role_type}】, 目前是白天的发言环节,在全部人发言完毕之后，会进入投票环节"

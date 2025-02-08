@@ -6,6 +6,10 @@ import json
 import dashscope
 import requests
 import http.client
+import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 class BaseLlm():
     def __init__(self, model_name, force_json=False):
@@ -20,11 +24,26 @@ class BaseLlm():
         """
         resp = self.generate(message, chat_history)
         if self.force_json:
+            resp_dict = None
             try:
-                resp = resp.replace("\n", "").replace("\\", "")
-                resp_dict = json.loads(resp)
-            except:
-                resp = resp.replace("```json", "").replace("```", "")
+                # 匹配被```json包裹的JSON块（非贪婪匹配）
+                json_block_pattern = r'```json\s*([\s\S]*?)\s*```'
+                json_match = re.search(json_block_pattern, resp, re.DOTALL)
+                
+                if json_match:
+                    clean_resp = json_match.group(1)
+                else:
+                    # 直接尝试解析整个响应（已自动去除多余符号）
+                    clean_resp = re.sub(r'```json|```', '', resp).strip()
+
+                resp_dict = json.loads(clean_resp)
+                
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON解析失败: {str(e)}\n清洗后响应: {clean_resp[:200]}")
+            except Exception as e:
+                logger.error(f"意外错误: {str(e)}\n原始响应: {resp[:200]}")
+            finally:
+                return resp_dict
         return resp
     
 class M302Llm(BaseLlm):
