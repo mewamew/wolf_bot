@@ -37,7 +37,6 @@ class BaseRole:
         prompt_template['player_index'] = f"你是{self.player_index}号玩家"
         prompt_template['curr_state'] = self.game.history.get_history()
         prompt_template['players_state'] = self.get_players_state()
-        prompt_template['发言要求'] = f"你不能说超过3句话"
         return prompt_template
 
     def handle_action(self, prompt_file, extra_data=None, retry_count=0):
@@ -62,7 +61,6 @@ class BaseRole:
                     time.sleep(10)
                     return self.handle_action(prompt_file, extra_data, retry_count+1)
                 return None
-                    
             return resp
 
     def speak(self, extra_data=None ):

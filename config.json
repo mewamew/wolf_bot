@@ -1,28 +1,35 @@
 {
+    "randomize_roles": false,
     "players": [
         {
             "name": "Pro/deepseek-ai/DeepSeek-R1",
-            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih"
+            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih",
+            "role": "狼人"
         },
         {
             "name": "Pro/deepseek-ai/DeepSeek-R1",
-            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih"
+            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih",
+            "role": "村民"
         },
         {
             "name": "Pro/deepseek-ai/DeepSeek-R1",
-            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih"
+            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih",
+            "role": "预言者"
         },
         {
             "name": "Pro/deepseek-ai/DeepSeek-R1",
-            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih"
+            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih",
+            "role": "女巫"
         },
         {
             "name": "Pro/deepseek-ai/DeepSeek-R1",
-            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih"
+            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih",
+            "role": "猎人"
         },
         {
             "name": "Pro/deepseek-ai/DeepSeek-R1",
-            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih"
+            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih",
+            "role": "狼人"
         }
     ],
     "judge": {

@@ -30,26 +30,34 @@ class WerewolfGame:
     def initialize_roles(self):
         # 随机初始化玩家列表
         roles = [Wolf, Villager, Wolf, Seer, Witch, Hunter]
-        '''
-        styles = [
-            "高冷智慧型：语调冷静理性",
-            "热情幽默型：活泼开朗，常用幽默的方式表达观点，喜欢调侃",
-            "神经质型：言辞跳跃,常常让人摸不着头脑",
-            "直接果断型：说话简洁直白，毫不犹豫地表达自己的立场和观点",
-            "冷嘲热讽型：言辞尖锐，喜欢用讽刺的方式表达观点，常常让人无言以对",
-            "挑衅激进型：喜欢挑衅和制造冲突，言辞激烈，常激怒其他玩家"
-        ]
-        random.shuffle(roles)
-        '''
         
-        '''
-        random.shuffle(styles)
-        '''
-        
+        # 角色类映射
+        role_classes = {
+            '狼人': Wolf,
+            '村民': Villager,
+            '预言者': Seer,
+            '女巫': Witch,
+            '猎人': Hunter
+        }
+
         # 读取配置文件决定每个玩家使用的模型
         with open('config.json', 'r', encoding='utf-8') as f:
             config = json.load(f)
         
+        if config["randomize_roles"]:
+            random.shuffle(roles)
+        else:
+            for i in range(len(roles)):
+                role_str = config["players"][i].get("role")
+                if not role_str:
+                    raise ValueError(f"玩家 {i} 没有设置角色")
+                
+                role_class = role_classes.get(role_str.lower())
+                if not role_class:
+                    raise ValueError(f"无效的角色 '{role_str}' 对玩家 {i}")
+                
+                roles[i] = role_class
+            
         # 使用配置文件中的模型和API key
         self.players = [
             role(i + 1, config["players"][i]["name"], config["players"][i]["api_key"], self) 
