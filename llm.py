@@ -14,21 +14,40 @@ logger = logging.getLogger(__name__)
 
 class BaseLlm():
     def __init__(self, model_name, force_json=False):
+        import datetime
         self.model_name = model_name
         self.force_json = force_json
+        self.timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         
     def generate(self, message, chat_history=[]):
         pass
 
     def get_response(self, message, chat_history=[]):
+        import datetime
+        import os
         
         print(" --- llm 输入 ---")
         print(message)
         print("-------")
-        resp = self.generate(message, chat_history)
+        resp, reason = self.generate(message, chat_history)
         print(" --- llm 响应 ---")
         print(resp)
         print("-------")
+        
+        # 创建logs目录（如果不存在）
+        if not os.path.exists('logs'):
+            os.makedirs('logs')
+            
+        # 使用初始化时生成的时间戳
+        log_file = f'logs/llm_response_{self.timestamp}.txt'
+        
+        # 写入响应内容到日志文件
+        with open(log_file, 'a', encoding='utf-8') as f:
+            f.write('------------------\n')
+            f.write(f'{reason if reason else "No reasoning provided"}\n')
+            f.write('------------------\n')
+            f.write(f'{resp if resp else "No response"}\n')
+            f.write('=============\n')
 
         if self.force_json:
             resp_dict = None
@@ -93,13 +112,13 @@ class M302Llm(BaseLlm):
             if match:
                 print(f"\n[推理过程]\n{match.group(1).strip()}\n")
                 return re.split(r'\nReasoned for .*?\n\n', content, 1)[-1].strip()
-            return content
+            return content, None
         except socket.timeout:
             logger.warning("API请求超时")
-            return None
+            return None, None
         except Exception as e:
             logger.error(f"请求失败：{str(e)}")
-            return None
+            return None, None
         finally:
             conn.close()
 
@@ -128,7 +147,7 @@ class DeepSeekLlm(BaseLlm):
             temperature=1.25
         )
         resp = response.choices[0].message.content
-        return resp
+        return resp, None
 
 
 
@@ -171,7 +190,7 @@ class QwenLlm(BaseLlm):
                 full_response += content
             else:
                 print(f'请求 ID: {partial_response.request_id}, 状态码: {partial_response.status_code}, 错误代码: {partial_response.code}, 错误信息: {partial_response.message}')
-        return full_response
+        return full_response, None
 
 '''
 Baichuan4
@@ -213,7 +232,7 @@ class BaichuanLlm(BaseLlm):
 
         if response.status_code == 200:
             result = response.json()
-            return result['choices'][0]['message']['content']
+            return result['choices'][0]['message']['content'], None
         else:
             raise Exception(f"请求失败: {response.status_code}, {response.text}")
 
@@ -247,7 +266,7 @@ class ZhipuLlm(BaseLlm):
             if content is not None:
                 full_response += content
                 #print(content, end='', flush=True)
-        return full_response
+        return full_response, None
 
 '''
 硅基流动的推理模型: 
@@ -282,7 +301,7 @@ class SiliconReasoner(BaseLlm):
                 print(chunk.choices[0].delta.reasoning_content, end='', flush=True)
         with open('reasoning.txt', 'a', encoding='utf-8') as f:
             f.write(f'{chunk.choices[0].delta.reasoning_content}\n')
-        return content
+        return content, reasoning_content
 
 
 
@@ -303,8 +322,6 @@ def BuildModel(model_name, api_key, force_json=False):
         return SiliconReasoner(model_name, api_key, force_json)
     elif model_name == "deepseek-chat":
         return DeepSeekLlm(model_name, api_key, force_json)
-    elif model_name in ["豆包-Pro-4K", "豆包-Pro-32K", "豆包-Pro-128K"]:
-        return DoubaoLlm(model_name, api_key, force_json)
     elif model_name in ["qwen-max", "qwen-max-longcontext", "qwen-plus", "qwen-long"]:
         return QwenLlm(model_name, api_key, force_json)
     elif model_name in ["Baichuan4", "Baichuan3-Turbo", "Baichuan3-Turbo-128k", "Baichuan2-Turbo", "Baichuan2-Turbo-192k"]:
@@ -315,3 +332,11 @@ def BuildModel(model_name, api_key, force_json=False):
         raise ValueError("未知的模型名称:", model_name)
     
     
+if __name__ == "__main__":
+    # 创建模型实例
+    client = BuildModel("gemini-2.0-flash-thinking-exp-01-21", "sk-8JaZfqVt87pgbC1NZKQUH95EBLnL4rlpZHGLCmRNJiW16WN2")
+    
+    # 测试对话
+    response = client.get_response("你好,请做个自我介绍")
+    print("回复:", response)
+

@@ -56,7 +56,7 @@ class BaseRole:
             
             if resp is None:
                 self.error("请求失败", prompt_str)
-                if retry_count < 3:
+                if retry_count < 10:
                     print_red("重新发起请求")
                     time.sleep(10)
                     return self.handle_action(prompt_file, extra_data, retry_count+1)
