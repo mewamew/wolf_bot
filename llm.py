@@ -8,6 +8,7 @@ import requests
 import http.client
 import re
 import logging
+import socket
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +21,15 @@ class BaseLlm():
         pass
 
     def get_response(self, message, chat_history=[]):
-        """
-        """
+        
+        print(" --- llm 输入 ---")
+        print(message)
+        print("-------")
         resp = self.generate(message, chat_history)
+        print(" --- llm 响应 ---")
+        print(resp)
+        print("-------")
+
         if self.force_json:
             resp_dict = None
             try:
@@ -47,9 +54,10 @@ class BaseLlm():
         return resp
     
 class M302Llm(BaseLlm):
-    def __init__(self, model_name, api_key, force_json=False):
+    def __init__(self, model_name, api_key, force_json=False, timeout=30):
         super().__init__(model_name, force_json)
         self.api_key = api_key
+        self.timeout = timeout  
 
     def generate(self, message, chat_history=[]):
         messages = []
@@ -64,17 +72,36 @@ class M302Llm(BaseLlm):
             "reasoning_effort": "high",
             "messages": messages
         })
-        conn = http.client.HTTPSConnection("api.302.ai")
-        headers = {
-            'Accept': 'application/json',
-            'Authorization': 'Bearer ' + self.api_key,
-            'Content-Type': 'application/json'
-        }
-        conn.request("POST", "/v1/chat/completions", payload, headers)
-        res = conn.getresponse()
-        data = res.read().decode("utf-8")
-        response = json.loads(data)
-        return response["choices"][0]["message"]["content"]
+        try:
+            conn = http.client.HTTPSConnection("api.302.ai", timeout=self.timeout)  
+            headers = {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + self.api_key,
+                'Content-Type': 'application/json'
+            }
+            conn.request("POST", "/v1/chat/completions", payload, headers)
+            res = conn.getresponse()
+            data = res.read().decode("utf-8")
+            response = json.loads(data)
+            content = response["choices"][0]["message"]["content"]
+            # 提取推理内容
+            reasoning_pattern = re.compile(
+                r'> Reasoning\n(.*?)\nReasoned for .*?\n\n',
+                re.DOTALL
+            )
+            match = reasoning_pattern.search(content)
+            if match:
+                print(f"\n[推理过程]\n{match.group(1).strip()}\n")
+                return re.split(r'\nReasoned for .*?\n\n', content, 1)[-1].strip()
+            return content
+        except socket.timeout:
+            logger.warning("API请求超时")
+            return None
+        except Exception as e:
+            logger.error(f"请求失败：{str(e)}")
+            return None
+        finally:
+            conn.close()
 
 
 class DeepSeekLlm(BaseLlm):
@@ -182,13 +209,14 @@ class BaichuanLlm(BaseLlm):
             "top_p": 0.9
         }
 
-        response = requests.post(self.api_url, headers=headers, json=data)
+        response = requests.post(self.api_url, headers=headers, json=data, timeout=30)
 
         if response.status_code == 200:
             result = response.json()
             return result['choices'][0]['message']['content']
         else:
             raise Exception(f"请求失败: {response.status_code}, {response.text}")
+
 
 class ZhipuLlm(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False):
