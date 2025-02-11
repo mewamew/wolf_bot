@@ -70,15 +70,6 @@ class Background {
         textSpirit.x = (520-36) * wr;
         textSpirit.y = 580 * hr;
         textSpirit.zIndex = 4;
-        textSpirit.height = (24 + 6) * 5; // 动态计算高度
-        const baseStyle = {
-            fontSize: 24,
-            fill: 0xffffff,
-            wordWrap: true,
-            wordWrapWidth: 600,
-            lineHeight: 24,  // 与字体大小一致
-            leading: 6       // 添加额外行间距
-        };
         app.stage.addChild(textSpirit);
         return textSpirit;
     }
@@ -246,7 +237,7 @@ class Background {
             }
         }
         if (currentLine) mergedLines.push(currentLine);
-        return mergedLines.join('\n');
+        return mergedLines;
     }
 
     async typeWriterEffect(formattedText, textSpirit) {
@@ -279,8 +270,19 @@ class Background {
         this.textSpirit.style.fill = text_color;
         this.titleTextSpirit.text = title;
         this.titleTextSpirit.visible = true;
-        const formattedText = this.formatText(text);
-        await this.typeWriterEffect(formattedText, this.textSpirit);
+        const lines = this.formatText(text);
+        
+        // 每5行分组显示
+        for (let i = 0; i < lines.length; i += 7) {
+            const batch = lines.slice(i, i + 7);
+            const formattedText = batch.join('\n');
+            await this.typeWriterEffect(formattedText, this.textSpirit);
+            if (i + 5 < lines.length) {
+                await this.sleep(1000); // 每组之间暂停1秒
+                this.textSpirit.text = ''; // 清空文本，准备显示下一组
+            }
+        }
+        
         await this.sleep(2000);
         await this.hideInfo();
     }
@@ -292,14 +294,24 @@ class Background {
         this.textSpirit.style.fill = "0xffffff";
         this.titleTextSpirit.text = title;
         this.titleTextSpirit.visible = true;
-        const formattedText = this.formatText(text);
+
         await this.showDarkBackground();
-        await this.typeWriterEffect(formattedText, this.textSpirit);
+        const lines = this.formatText(text);
+        // 每5行分组显示
+        for (let i = 0; i < lines.length; i += 7) {
+            const batch = lines.slice(i, i + 7);
+            const formattedText = batch.join('\n');
+            await this.typeWriterEffect(formattedText, this.textSpirit);
+            if (i + 5 < lines.length) {
+                await this.sleep(1000); // 每组之间暂停1秒
+                this.textSpirit.text = ''; // 清空文本，准备显示下一组
+            }
+        }
         await this.sleep(2000);
         await this.hideInfo();
         await this.hideDarkBackground();
     }
-
+    
     async showResultInfo(text) {
         this.infoLayers['result'].visible = true;
         this.infoLayers['speak'].visible = false;
