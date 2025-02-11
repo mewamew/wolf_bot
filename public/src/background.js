@@ -70,6 +70,15 @@ class Background {
         textSpirit.x = (520-36) * wr;
         textSpirit.y = 580 * hr;
         textSpirit.zIndex = 4;
+        textSpirit.height = (24 + 6) * 5; // 动态计算高度
+        const baseStyle = {
+            fontSize: 24,
+            fill: 0xffffff,
+            wordWrap: true,
+            wordWrapWidth: 600,
+            lineHeight: 24,  // 与字体大小一致
+            leading: 6       // 添加额外行间距
+        };
         app.stage.addChild(textSpirit);
         return textSpirit;
     }

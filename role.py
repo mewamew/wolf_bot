@@ -4,6 +4,7 @@ from log import *
 import yaml
 import json
 import time
+from datetime import datetime
 
 class BaseRole:
     def __init__(self, player_index, role_type, model_name, api_key, game):
@@ -47,12 +48,7 @@ class BaseRole:
                 prompt_dict.update(extra_data)
             
             prompt_str = json.dumps(prompt_dict, ensure_ascii=False)
-            resp = self.model.get_response(prompt_str)
-            
-            # 日志记录保持原样
-            with open('action_log.txt', 'a', encoding='utf-8') as log_file:
-                log_file.write(f"---Input---:\n{prompt_str}\n")
-                log_file.write(f"---Output---:\n{json.dumps(resp, ensure_ascii=False)}\n")
+            resp, reason = self.model.get_response(prompt_str)
             
             if resp is None:
                 self.error("请求失败", prompt_str)
@@ -61,6 +57,19 @@ class BaseRole:
                     time.sleep(10)
                     return self.handle_action(prompt_file, extra_data, retry_count+1)
                 return None
+
+            # 日志记录保持原样
+            with open(f'logs/llm_{self.game.start_time}.txt', 'a', encoding='utf-8') as log_file:
+                log_file.write(f"--- {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---\n")
+                log_file.write(f"--- {self.player_index}号玩家 ({self.role_type}) ---\n")
+                log_file.write(f"---输入---:\n{prompt_str}\n")
+                log_file.write(f"---输出---:\n{json.dumps(resp, ensure_ascii=False)}\n")
+                if reason:
+                    log_file.write(f"---推理过程---:\n{reason}\n")
+
+            #存在推理过程，用推理过程替代thinking
+            if 'thinking' in resp and reason:
+                resp['thinking'] = reason
             return resp
 
     def speak(self, extra_data=None ):

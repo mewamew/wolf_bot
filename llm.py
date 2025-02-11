@@ -9,12 +9,14 @@ import http.client
 import re
 import logging
 import socket
+import datetime
+import os
 
 logger = logging.getLogger(__name__)
 
 class BaseLlm():
     def __init__(self, model_name, force_json=False):
-        import datetime
+        
         self.model_name = model_name
         self.force_json = force_json
         self.timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -23,31 +25,13 @@ class BaseLlm():
         pass
 
     def get_response(self, message, chat_history=[]):
-        import datetime
-        import os
-        
-        print(" --- llm 输入 ---")
+        print(f" ---  请求LLM {self.model_name} ---")
         print(message)
-        print("-------")
+        print("---")
         resp, reason = self.generate(message, chat_history)
-        print(" --- llm 响应 ---")
+        print(" --- LLM 响应 ---")
         print(resp)
         print("-------")
-        
-        # 创建logs目录（如果不存在）
-        if not os.path.exists('logs'):
-            os.makedirs('logs')
-            
-        # 使用初始化时生成的时间戳
-        log_file = f'logs/llm_response_{self.timestamp}.txt'
-        
-        # 写入响应内容到日志文件
-        with open(log_file, 'a', encoding='utf-8') as f:
-            f.write('------------------\n')
-            f.write(f'{reason if reason else "No reasoning provided"}\n')
-            f.write('------------------\n')
-            f.write(f'{resp if resp else "No response"}\n')
-            f.write('=============\n')
 
         if self.force_json:
             resp_dict = None
@@ -69,8 +53,8 @@ class BaseLlm():
             except Exception as e:
                 logger.error(f"意外错误: {str(e)}\n原始响应: {resp[:200]}")
             finally:
-                return resp_dict
-        return resp
+                return resp_dict, reason
+        return resp, reason
     
 class M302Llm(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False, timeout=30):
@@ -110,8 +94,9 @@ class M302Llm(BaseLlm):
             )
             match = reasoning_pattern.search(content)
             if match:
-                print(f"\n[推理过程]\n{match.group(1).strip()}\n")
-                return re.split(r'\nReasoned for .*?\n\n', content, 1)[-1].strip()
+                reasoning = match.group(1).strip()
+                print(f"\n[推理过程]\n{reasoning}\n")
+                return content.split('\n\n')[1].strip(), None
             return content, None
         except socket.timeout:
             logger.warning("API请求超时")
@@ -330,13 +315,3 @@ def BuildModel(model_name, api_key, force_json=False):
         return ZhipuLlm(model_name, api_key, force_json)
     else:
         raise ValueError("未知的模型名称:", model_name)
-    
-    
-if __name__ == "__main__":
-    # 创建模型实例
-    client = BuildModel("gemini-2.0-flash-thinking-exp-01-21", "sk-8JaZfqVt87pgbC1NZKQUH95EBLnL4rlpZHGLCmRNJiW16WN2")
-    
-    # 测试对话
-    response = client.get_response("你好,请做个自我介绍")
-    print("回复:", response)
-

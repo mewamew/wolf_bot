@@ -48,7 +48,7 @@ class Judge:
             prompt_str = json.dumps(prompt_template, ensure_ascii=False)
             print(prompt_str)
             
-            resp = self.model.get_response(prompt_str)
+            resp, _ = self.model.get_response(prompt_str)
             if resp:
                 reason = resp['reason']
                 print(reason)
