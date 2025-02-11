@@ -14,8 +14,4 @@ output_format: |
     "thinking": "思考",
     "speak": "发言"
   }
-instructions: "请你根据当前情况和你身份进行最后的发言。请确保输出包含 'thinking' 和 'speak' 两个字段。示例如下：
-{
-    'thinking': '我认为狼人可能会在今晚行动',
-    'speak': '大家好，我是狼人，我会攻击第2号玩家'
-}"
+instructions: "请你根据当前情况和你身份进行最后的发言。请确保输出包含 'thinking' 和 'speak' 两个字段。"

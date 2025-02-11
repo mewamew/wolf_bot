@@ -31,8 +31,4 @@ output_format: |
     "reason": "判断胜负的理由",
     "result": "村民胜利" or "狼人胜利" or "胜负未分"
   }
-instructions: "请你根据当前情况判断游戏的胜负。请确保输出包含 'reason' 和 'result' 两个字段。示例如下：
-{
-    'reason': '目前只剩下村民和女巫,到夜晚阶段势必会有一个村民被杀死，由此可知狼人胜利',
-    'result': '狼人胜利'
-}"
+instructions: "请你根据当前情况判断游戏的胜负。请确保输出包含 'reason' 和 'result' 两个字段。"

@@ -203,15 +203,9 @@ class Wolf(BaseRole):
     def make_extra_data(self):
         if self.other_wolf == -1:
             self.other_wolf = self.find_other_wolf()
-        extra_data = None
-        if self.game.current_day > 1 or self.game.current_phase == "夜晚":
-            extra_data = {
-                "你的队友": f"【{self.other_wolf}号玩家】也是狼人。他是你的队友。"
-            }
-        else:
-            extra_data = {
-                "你的队友": f"你暂时还不知道谁是你的队友"
-            }
+        extra_data = {
+            "你的队友": f"【{self.other_wolf}号玩家】也是狼人。他是你的队友。"
+        }
         return extra_data
 
     def last_words(self, death_reason):

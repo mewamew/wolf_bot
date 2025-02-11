@@ -49,6 +49,7 @@ async function sleep(ms) {
 
     const game = new Game(app);
     await game.start();
+    
     while (true) {
         await game.dayPhase();
         const w1 = await game.checkWinner();

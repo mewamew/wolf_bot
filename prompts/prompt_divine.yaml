@@ -19,8 +19,4 @@ output_format: |
     "divine": 1
       # 对于 divine: 1,2,3,4,5,6 分别代表查看的目标. -1 代表不发动技能
   }
-instructions: "请你根据当前情况选择查看一名玩家的身份。请确保输出包含 'thinking' 和 'divine' 两个字段。示例如下：
-{
-    'thinking': '我认为这名玩家是狼人',
-    'divine': 1
-}"
+instructions: "请你根据当前情况选择查看一名玩家的身份。请确保输出包含 'thinking' 和 'divine' 两个字段

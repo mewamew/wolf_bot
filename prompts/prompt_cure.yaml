@@ -16,8 +16,4 @@ output_format: |
     "cure": 1
       # 对于 cure: 1 表示要治疗这名玩家, 0 表示不治疗
   }
-instructions: "请你根据当前情况选择要不要治疗这名玩家。请确保输出包含 'thinking' 和 'cure' 两个字段。示例如下：
-{
-    'thinking': '我认为这名玩家很重要，必须治疗',
-    'cure': 1
-}"
+instructions: "请你根据当前情况选择要不要治疗这名玩家。请确保输出包含 'thinking' 和 'cure' 两个字段。"

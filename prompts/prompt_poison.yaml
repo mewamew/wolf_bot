@@ -16,8 +16,4 @@ output_format: |
     "poison": -1
       # 对于 poison: -1 表示不使用毒药, 否则1,2,3,4,5,6表示要毒杀的玩家
   }
-instructions: "请你根据当前情况选择要不要使用毒药。请确保输出包含 'thinking' 和 'poison' 两个字段。示例如下：
-{
-    'thinking': '我认为狼人可能会在今晚行动',
-    'poison': 1
-}"
+instructions: "请你根据当前情况选择要不要使用毒药。请确保输出包含 'thinking' 和 'poison' 两个字段。"
