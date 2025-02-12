@@ -6,6 +6,7 @@ import json
 import os
 from datetime import datetime
 
+#WerewolfGame负责保存游戏状态，游戏逻辑由前端脚本负责
 class WerewolfGame:
     def __init__(self):
         self.players = [] 
@@ -34,7 +35,7 @@ class WerewolfGame:
         
     def initialize_roles(self):
         # 随机初始化玩家列表
-        roles = [Wolf, Villager, Wolf, Seer, Witch, Hunter]
+        roles = [Wolf, Wolf, Wolf, Seer, Witch, Hunter, Villager, Villager, Villager]
         
         # 角色类映射
         role_classes = {
@@ -105,6 +106,7 @@ class WerewolfGame:
     
 
     def speak(self, player_idx):
+        # TODO增加一个log类吧！
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
             f.write(f"[{player_idx}号玩家【{self.players[player_idx-1].role_type}】发言]\n")
         resp = self.players[player_idx-1].speak()
