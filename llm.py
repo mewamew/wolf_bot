@@ -142,6 +142,7 @@ class DeepSeekLlm(BaseLlm):
     qwen-max-longcontext
     qwen-plus
     qwen-long
+    qwen-max-2025-01-25 (qwen2.5 max)
 '''
 class QwenLlm(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False):
@@ -307,7 +308,7 @@ def BuildModel(model_name, api_key, force_json=False):
         return SiliconReasoner(model_name, api_key, force_json)
     elif model_name == "deepseek-chat":
         return DeepSeekLlm(model_name, api_key, force_json)
-    elif model_name in ["qwen-max", "qwen-max-longcontext", "qwen-plus", "qwen-long"]:
+    elif model_name in ["qwen-max", "qwen-max-longcontext", "qwen-plus", "qwen-long", "qwen-max-2025-01-25"]:
         return QwenLlm(model_name, api_key, force_json)
     elif model_name in ["Baichuan4", "Baichuan3-Turbo", "Baichuan3-Turbo-128k", "Baichuan2-Turbo", "Baichuan2-Turbo-192k"]:
         return BaichuanLlm(model_name, api_key, force_json)
@@ -315,3 +316,35 @@ def BuildModel(model_name, api_key, force_json=False):
         return ZhipuLlm(model_name, api_key, force_json)
     else:
         raise ValueError("未知的模型名称:", model_name)
+
+
+def test_qwen(model_name):
+    """测试通义千问模型的基本功能"""
+    # 配置API密钥
+    api_key = "sk-62081a7ee50143b298f2a92127867985"
+    
+    # 初始化Qwen模型
+    model = BuildModel(model_name, api_key, force_json=False)
+    
+    # 测试对话消息
+    message = "你好,请介绍你自己"
+    
+    # 创建聊天历史记录(可选)
+    chat_history = [
+        {"role": "user", "content": "你是谁?"},
+        {"role": "bot", "content": "我是通义千问AI助手"}
+    ]
+    
+    # 获取模型响应
+    response, reason = model.get_response(message, chat_history)
+    
+    # 打印结果
+    print("\n最终响应:")
+    print(response)
+    
+    return response
+
+
+if __name__ == "__main__":
+    
+    test_qwen("qwen-plus")
