@@ -11,7 +11,7 @@ class WerewolfGame:
         self.players = [] 
         self.history = None # 存储游戏的历史记录
         self.current_day = 1
-        self.current_phase = "白天" 
+        self.current_phase = "夜晚" 
         self.vote_result = {}
         self.wolf_want_kill = []
         self.start_time = datetime.now().strftime("%Y%m%d%H%M")
@@ -28,7 +28,7 @@ class WerewolfGame:
         self.vote_result = {}
         self.wolf_want_kill = []
         self.current_day = 1  # 游戏开始时,设置为第1天
-        self.current_phase = "白天"  # 初始化当前阶段为白天
+        self.current_phase = "夜晚"  # 初始化当前阶段为夜晚
         self.initialize_roles()
 
         
