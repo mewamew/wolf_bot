@@ -27,11 +27,6 @@ class Game {
         await this.background.showDayBackground(timeInfo.current_day);
         await this.updatePlayerState();
         await this.speak();
-
-        if (timeInfo.current_day === 1) {
-            console.log("第一天，跳过投票处决环节");
-            return;
-        }
         await this.vote();
     }
 

@@ -51,7 +51,7 @@ async function sleep(ms) {
     await game.start();
     
     while (true) {
-        await game.dayPhase();
+        await game.nightPhase();
         const w1 = await game.checkWinner();
         if (w1 != "胜负未分") {
             console.log(`胜利者是 ${w1}`);
@@ -60,7 +60,7 @@ async function sleep(ms) {
         }
 
         await game.toggleDayNight();
-        await game.nightPhase();
+        await game.dayPhase();
 
         const w2 = await game.checkWinner();
         if (w2 != "胜负未分") {

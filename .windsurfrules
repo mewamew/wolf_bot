@@ -1,0 +1,3 @@
+这是一个AI狼人杀项目。让不同的大模型扮演6个角色，玩一局狼人杀，观察模型之后的互动，推理和决策能力。
+前端用的是PIXIJS,实现在public目录下的index.html,核心游戏逻辑在public/src下的game.js
+后端用的是fastapi,入口在web.py,核心逻辑在wolf_game.py
