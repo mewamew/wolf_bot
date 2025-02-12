@@ -1,4 +1,7 @@
+import { LAYOUT, TEXT_STYLES } from './config.js';
+
 let wolfCount = 0; // 全局变量，用于跟踪狼人数量
+
 class Player {
     constructor(game, name, index, role_type) {
         this.game = game;
@@ -26,12 +29,18 @@ class Player {
         this.voteText = this.initVoteText(game.app); // 初始化投票文本
     }
 
+    getScreenScale() {
+        return {
+            wr: this.game.app.screen.width / LAYOUT.BASE_WIDTH,
+            hr: this.game.app.screen.height / LAYOUT.BASE_HEIGHT
+        };
+    }
+
     initSpirit(app, role_type) {
-        const wr = app.screen.width/1800;
-        const hr = app.screen.height/900;
+        const { wr, hr } = this.getScreenScale();
         const spirit = PIXI.Sprite.from(role_type);
-        spirit.x = 0*wr;
-        spirit.y = 450*hr;
+        spirit.x = LAYOUT.MAIN_SPIRIT.x * wr;
+        spirit.y = LAYOUT.MAIN_SPIRIT.y * hr;
         spirit.zIndex = 4;
         spirit.visible = false;
         spirit.scale.set(wr, hr);
@@ -40,11 +49,10 @@ class Player {
     }
 
     initSmallSpirit(app, index, role_type) {
-        const wr = app.screen.width/1800;
-        const hr = app.screen.height/900;
+        const { wr, hr } = this.getScreenScale();
         const spirit = PIXI.Sprite.from(role_type);
-        spirit.x = 520*wr + (index-1)*(152+40)*wr;
-        spirit.y = 200*hr;
+        spirit.x = (LAYOUT.SMALL_SPIRIT.START_X + (index-1) * LAYOUT.SMALL_SPIRIT.SPACING) * wr;
+        spirit.y = LAYOUT.SMALL_SPIRIT.Y * hr;
         spirit.zIndex = 4;
         spirit.visible = true;
         spirit.scale.set(wr, hr);
@@ -53,11 +61,10 @@ class Player {
     }
 
     initDeadSpirit(app, index) {
-        const wr = app.screen.width/1800;
-        const hr = app.screen.height/900;
+        const { wr, hr } = this.getScreenScale();
         const spirit = PIXI.Sprite.from('dead');
-        spirit.x = 520*wr + (index-1)*(152+40)*wr;
-        spirit.y = 200*hr;
+        spirit.x = (LAYOUT.SMALL_SPIRIT.START_X + (index-1) * LAYOUT.SMALL_SPIRIT.SPACING) * wr;
+        spirit.y = LAYOUT.SMALL_SPIRIT.Y * hr;
         spirit.zIndex = 5;
         spirit.visible = false;
         spirit.scale.set(wr, hr);
@@ -66,17 +73,14 @@ class Player {
     }
 
     initSmallSpiritTitle(app, index, role_type) {
-        const wr = app.screen.width/1800;
-        const hr = app.screen.height/900;
+        const { wr, hr } = this.getScreenScale();
         const textStyle = new PIXI.TextStyle({
-            fontFamily: '钉钉进步体',
-            fontSize: 30*wr,
-            fill: '#ffffff',
-            stroke: { color: '#000000', width: 2*wr }
+            ...TEXT_STYLES.TITLE,
+            fontSize: LAYOUT.TITLE_TEXT.FONT_SIZE * wr
         });
         const textSpirit = new PIXI.Text({text:`${index}.${role_type}`, style:textStyle});
-        textSpirit.x = 560*wr + (index-1)*(152+40)*wr;
-        textSpirit.y = 360*hr;
+        textSpirit.x = (LAYOUT.TITLE_TEXT.OFFSET_X + (index-1) * LAYOUT.SMALL_SPIRIT.SPACING) * wr;
+        textSpirit.y = LAYOUT.TITLE_TEXT.Y * hr;
         textSpirit.scale.set(wr, hr);
         textSpirit.zIndex = 4;
         app.stage.addChild(textSpirit);
@@ -84,13 +88,10 @@ class Player {
     }
 
     initVoteText(app) {
-        const wr = app.screen.width / 1800;
-        const hr = app.screen.height / 900;
+        const { wr, hr } = this.getScreenScale();
         const textStyle = new PIXI.TextStyle({
-            fontFamily: 'Arial',
-            fontSize: 48 * wr,
-            fill: '#ff0000',
-            stroke: { color: '#000000', width: 2 * wr }
+            ...TEXT_STYLES.VOTE,
+            fontSize: LAYOUT.VOTE_TEXT.FONT_SIZE * wr
         });
         const voteText = new PIXI.Text({text:'', style:textStyle});
         voteText.zIndex = 6;
@@ -197,8 +198,7 @@ class Player {
     }
 
     async showVoteCount(voteCount, hide = true) {
-        const wr = this.game.app.screen.width / 1800;
-        const hr = this.game.app.screen.height / 900;
+        const { wr, hr } = this.getScreenScale();
         this.voteText.text = `+${voteCount}`;
         this.voteText.x = this.spirit_small.x+20*wr;
         this.voteText.y = this.spirit_small.y - 50 * hr; // 显示在玩家头上
