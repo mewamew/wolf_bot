@@ -12,19 +12,19 @@
             "role": "村民"
         },
         {
-            "model_name": "o3-mini-2025-01-31",
-            "api_key": "sk-8JaZfqVt87pgbC1NZKQUH95EBLnL4rlpZHGLCmRNJiW16WN2",
+            "model_name": "Baichuan4",
+            "api_key": "sk-9d3d6ed146af1bd138c8f90898d14f94",
             "role": "村民"
         },
         {
-            "model_name": "o3-mini-2025-01-31",
-            "api_key": "sk-8JaZfqVt87pgbC1NZKQUH95EBLnL4rlpZHGLCmRNJiW16WN2",
+            "model_name": "Pro/deepseek-ai/DeepSeek-R1",
+            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih",
             "role": "村民"
         },
         {
             "model_name": "qwen-max-2025-01-25",
             "api_key": "sk-62081a7ee50143b298f2a92127867985",
-            "role": "预言者"
+            "role": "预言家"
         },
         {
             "model_name": "qwen-max-2025-01-25",

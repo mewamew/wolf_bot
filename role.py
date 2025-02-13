@@ -73,10 +73,8 @@ class BaseRole:
             return resp
 
     def speak(self, extra_data=None ):
-        background = f"您是一名经验丰富的狼人杀玩家,你正在玩的是标准的6人局狼人杀, 你是【{self.player_index}号玩家】, 你扮演的是【{self.role_type}】, 目前是白天的发言环节,在全部人发言完毕之后，会进入投票环节"
         if extra_data is None:
             extra_data = {}
-        extra_data['任务背景'] = background
         resp_dict = self.handle_action('prompts/prompt_speak.yaml', extra_data)
         if resp_dict:
             self.game.history.add_event(SpeakEvent(self.player_index, resp_dict['speak']))
@@ -84,11 +82,8 @@ class BaseRole:
 
     def vote(self, extra_data=None):
         """投票（决定谁是狼人）"""
-        background = f"您是一名经验丰富的狼人杀玩家,你是【{self.player_index}号玩家】, 你扮演的是【{self.role_type}】, 目前你正在玩的是标准的6人局狼人杀, 目前是白天的投票环节"
         if extra_data is None:
             extra_data={}
-        extra_data['任务背景'] = background
-
         resp_dict = self.handle_action('prompts/prompt_vote.yaml', extra_data)
         if resp_dict:
             vote_id = resp_dict['vote']
@@ -97,11 +92,9 @@ class BaseRole:
 
     def last_words(self, death_reason, extra_data=None):
         """发表遗言(死后)"""
-        background = f"您是一名经验丰富的狼人杀玩家,你正在玩的是标准的6人局狼人杀, 你是【{self.player_index}号玩家】, 你扮演的是【{self.role_type}】, 目前你由于游戏出局，需要做最后发言"
         if extra_data is None:
             extra_data={}
         extra_data['reason'] = death_reason
-        extra_data['任务背景'] = background
         resp_dict = self.handle_action('prompts/prompt_lastword.yaml', extra_data)
         if resp_dict:
             self.game.history.add_event(LastWordEvent(self.player_index, resp_dict['speak']))
@@ -262,7 +255,7 @@ class Witch(BaseRole):
             extra_data['今晚发生了什么'] = "没有人将被杀害"
         resp_dict = self.handle_action('prompts/prompt_cure_or_poison.yaml', extra_data)
         if resp_dict:
-            self.cured_someone = resp_dict['cure'] if resp_dict['cure'] != -1 else self.cured_someone
+            self.cured_someone = someone_will_be_killed if resp_dict['cure'] != -1 else self.cured_someone
             self.poisoned_someone = resp_dict['poison'] if resp_dict['poison'] != -1 else self.poisoned_someone
             return resp_dict
 

@@ -24,6 +24,8 @@ class VoteEvent(Event):
         self.target_idx = target_idx
 
     def desc(self)->str:
+        if self.target_idx == -1:
+            return f'【{self.player_idx}号玩家】在投票环节弃票'
         return f'【{self.player_idx}号玩家】投票给: 【{self.target_idx}号玩家】'
 
 class ExecuteEvent(Event):

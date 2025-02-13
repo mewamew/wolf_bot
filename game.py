@@ -41,7 +41,7 @@ class WerewolfGame:
         role_classes = {
             '狼人': Wolf,
             '村民': Villager,
-            '预言者': Seer,
+            '预言家': Seer,
             '女巫': Witch,
             '猎人': Hunter
         }
@@ -148,6 +148,8 @@ class WerewolfGame:
         return result
     
     def kill(self, player_idx):
+        if player_idx == -1:
+            return
         # 狼人杀人
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
             f.write(f"[狼人杀人] {player_idx}号玩家被狼人杀死\n")
@@ -159,14 +161,10 @@ class WerewolfGame:
     def poison(self, player_idx):
         self.players[player_idx-1].be_poisoned()
         
-    
-    ###########################################################################
-    def speak(self, player_idx):
-        # TODO增加一个log类吧！
-        with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
-            f.write(f"[{player_idx}号玩家【{self.players[player_idx-1].role_type}】发言]\n")
+    def speak(self, player_idx):            
         resp = self.players[player_idx-1].speak()
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
+            f.write(f"[{player_idx}号玩家【{self.players[player_idx-1].role_type}】发言]\n")
             if "thinking" in resp:
                 f.write(f"=== 发言前思考===\n{resp['thinking']} \n=== 发言内容===\n")
             f.write(f"{resp['speak']}\n")
@@ -176,16 +174,17 @@ class WerewolfGame:
         # 投票逻辑
         result = self.players[player_idx-1].vote()
         vote_id = result["vote"]
-        if vote_id in self.vote_result:
-            self.vote_result[vote_id] += 1
-        else:
-            self.vote_result[vote_id] = 1
-        
-        result["vote_count"] = self.vote_result[vote_id]
+        if vote_id != -1:
+            if vote_id in self.vote_result:
+                self.vote_result[vote_id] += 1
+            else:
+                self.vote_result[vote_id] = 1
+            result["vote_count"] = self.vote_result[vote_id]
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
             if "thinking" in result:
                 f.write(f"=== [{player_idx}号玩家({self.players[player_idx-1].role_type})的思考过程]===\n{result['thinking']}\n")
-            f.write(f"[{player_idx}号玩家投票] 投给了{vote_id}号玩家 (当前{vote_id}号玩家已获得{self.vote_result[vote_id]}票)\n")
+            if vote_id != -1:
+                f.write(f"[{player_idx}号玩家投票] 投给了{vote_id}号玩家 (当前{vote_id}号玩家已获得{self.vote_result[vote_id]}票)\n")
         return result
     
     def reset_vote_result(self):
@@ -194,13 +193,11 @@ class WerewolfGame:
     def get_vote_result(self):
         return self.vote_result
 
-
     def last_words(self, player_idx, death_reason):
-        # 最后发言
-        with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
-            f.write(f"[{player_idx}号玩家遗言] 死亡原因：{death_reason}\n")
+        # 最后发言            
         resp = self.players[player_idx-1].last_words(death_reason)
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
+            f.write(f"[{player_idx}号玩家遗言] 死亡原因：{death_reason}\n")
             if "thinking" in resp:
                 f.write(f"思考过程：{resp['thinking']}\n")
             f.write(f"{resp['speak']}\n")
@@ -209,88 +206,57 @@ class WerewolfGame:
     def execute(self, player_idx):
         # 处决玩家
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
-            f.write(f"[处决] {player_idx}号玩家被处决\n")
+            f.write(f"[处决] {player_idx}号玩家被放逐\n")
         self.players[player_idx-1].be_executed()
 
+    def reset_wolf_want_kill(self):
+        self.wolf_want_kill = {}
+
+    
     def attack(self, player_idx):
         # 猎人攻击
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
             f.write(f"[猎人攻击] {player_idx}号玩家被猎人攻击\n")
         self.players[player_idx-1].be_attacked()
-        
-    def reset_wolf_want_kill(self):
-        self.wolf_want_kill = []
-        
-    def get_wolf_want_kill(self):
-        return self.wolf_want_kill
-
     
     def get_day(self):
         return self.current_day
     
 
+    def get_wolf_want_kill(self):
+        # 将字典转换为对象列表
+        kill_list = [{"player_index": idx, "kill": info["kill"], "reason": info["reason"]} 
+                    for idx, info in self.wolf_want_kill.items()]
+        return kill_list
+    
     
     def check_winner(self) -> str:
         return self.judge.decide()
-    
-    def process_kill_votes(self, kill_votes):
-        # 统计每个玩家获得的票数
-        killed_player = -1
-        vote_count = {}
-        for vote in kill_votes:
-            target = vote.get('kill')  # 获取投票目标
-            if target is not None:  # 确保有效投票
-                if target in vote_count:
-                    vote_count[target] += 1
-                else:
-                    vote_count[target] = 1
-        
-        if not vote_count:  # 如果没有有效投票
-            return -1
-        
-        # 找出最高票数
-        max_votes = max(vote_count.values())
-        
-        # 找出获得最高票数的玩家
-        candidates = [player for player, votes in vote_count.items() if votes == max_votes]
-        
-        # 如果只有一个最高票，直接返回；如果有平票，随机选择一个
-        if len(candidates) == 1:
-            killed_player = candidates[0]
-        return killed_player
 
 
-if __name__ == "__main__":
-    game = WerewolfGame()
-    game.start()
-   
-    #player = game.get_players()
-    #print(player)
+def process_kill_votes(kill_votes):
+    # 统计每个玩家获得的票数
+    killed_player = -1
+    vote_count = {}
+    for vote in kill_votes:
+        target = vote.get('kill')  # 获取投票目标
+        if target is not None:  # 确保有效投票
+            if target in vote_count:
+                vote_count[target] += 1
+            else:
+                vote_count[target] = 1
     
-    #测试第一晚
-    game.divine(5) #预言家查验
-    kill_votes=[]
-    kill_votes.append(game.decide_kill(1)) #狼人决定杀人
-    kill_votes.append(game.decide_kill(8)) #狼人决定杀人
-    kill_votes.append(game.decide_kill(9)) #狼人决定杀人
+    if not vote_count:  # 如果没有有效投票
+        return -1
     
-    killed_player = game.process_kill_votes(kill_votes)
-    if killed_player != -1:
-        print(f"第一轮投票结果: {killed_player} 号玩家被杀")
-    else:
-        print("投票无效，继续第二轮投票")
-        kill_votes.append(game.decide_kill(1)) #狼人决定杀人
-        kill_votes.append(game.decide_kill(8)) #狼人决定杀人
-        kill_votes.append(game.decide_kill(9)) #狼人决定杀人
-        killed_player = game.process_kill_votes(kill_votes)
-        print(f"第二轮投票结果: {killed_player} 号玩家被杀")
+    # 找出最高票数
+    max_votes = max(vote_count.values())
     
-    decision = game.decide_cure_or_poison(6, killed_player)
-    if decision["cure"] == 0:
-        game.kill(killed_player)
+    # 找出获得最高票数的玩家
+    candidates = [player for player, votes in vote_count.items() if votes == max_votes]
     
-    if decision["poison"] != -1:
-        game.poison(decision["poison"])
-        
-    
-    
+    # 如果只有一个人得票最高，处决该玩家
+    if len(candidates) == 1:
+        killed_player = candidates[0]
+    return killed_player
+

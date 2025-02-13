@@ -351,8 +351,6 @@ class SiliconReasoner(BaseLlm):
             if chunk.choices[0].delta.reasoning_content:
                 reasoning_content += chunk.choices[0].delta.reasoning_content
                 print(chunk.choices[0].delta.reasoning_content, end='', flush=True)
-        with open('reasoning.txt', 'a', encoding='utf-8') as f:
-            f.write(f'{chunk.choices[0].delta.reasoning_content}\n')
         return content, reasoning_content
 
 
