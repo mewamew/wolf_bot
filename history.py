@@ -99,7 +99,7 @@ class History:
         self.day_count = 0  # 当前是第几天,从0开始
         self.rounds = []  # 存储所有事件
         self.rounds.append(Round(self.day_count)) #创建第一个回合
-        self.is_daytime = True  # 当前是白天还是晚上
+        self.is_daytime = False  # 从晚上开始
 
     def dump(self):
         for round in self.rounds:

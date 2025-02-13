@@ -1,5 +1,5 @@
 {
-    "randomize_roles": false,
+    "randomize_roles": true,
     "players": [
         {
             "model_name": "glm-4-plus",
@@ -12,8 +12,8 @@
             "role": "村民"
         },
         {
-            "model_name": "Baichuan4",
-            "api_key": "sk-9d3d6ed146af1bd138c8f90898d14f94",
+            "model_name": "qwen-max-2025-01-25",
+            "api_key": "sk-62081a7ee50143b298f2a92127867985",
             "role": "村民"
         },
         {
