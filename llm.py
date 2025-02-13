@@ -2,6 +2,7 @@ from openai import OpenAI
 from dashscope import Generation
 from http import HTTPStatus
 from zhipuai import ZhipuAI
+import google.generativeai as genai
 import json
 import dashscope
 import requests
@@ -222,12 +223,77 @@ class BaichuanLlm(BaseLlm):
         else:
             raise Exception(f"请求失败: {response.status_code}, {response.text}")
 
+'''
+谷歌帐号没申请成功，比较麻烦，推荐直接用302ai的模型
+gemini-2.0-flash-thinking-exp-01-21
 
+'''
+class GeminiLlm(BaseLlm):
+    def __init__(self, model_name, api_key, force_json=False):
+        super().__init__(model_name, force_json)
+        self.api_key = api_key
+        genai.configure(api_key=self.api_key)
+
+    def generate(self, message, chat_history=[]):
+        messages = []
+        if self.force_json:
+            messages = ["请严格使用JSON格式输出，确保返回的字符串是有效的JSON"]
+        for msg in chat_history:
+            if msg["role"] == "bot":
+                messages.append(msg["content"])
+            else:
+                messages.append(msg["content"])
+        messages.append(message)
+
+        model = genai.GenerativeModel(self.model_name)
+        chat = model.start_chat()
+        response = chat.send_message("\n".join(messages))
+        return response.text, None
+
+'''
+glm-3-turbo
+glm-4
+glm-4v
+'''
 class ZhipuLlm(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False):
         super().__init__(model_name, force_json)
         self.api_key = api_key
         self.client = ZhipuAI(api_key=self.api_key)
+
+    def generate(self, message, chat_history=[]):
+        messages = []
+        if self.force_json:
+            messages = [{"role": "system", "content": "请严格使用JSON格式输出，确保返回的字符串是有效的JSON"}]
+        for msg in chat_history:
+            if msg["role"] == "bot":
+                messages.append({"role": "assistant", "content": msg["content"]})
+            else:
+                messages.append({"role": "user", "content": msg["content"]})
+        messages.append({"role": "user", "content": message})
+
+        response = self.client.chat.completions.create(
+            model=self.model_name,
+            messages=messages,
+            stream=True
+        )
+
+        full_response = ""
+        for chunk in response:
+            content = chunk.choices[0].delta.content
+            if content is not None:
+                full_response += content
+                #print(content, end='', flush=True)
+        return full_response, None
+
+'''
+moonshot-v1-32k
+'''
+class KimiLlm(BaseLlm):
+    def __init__(self, model_name, api_key, force_json=False):
+        super().__init__(model_name, force_json)
+        self.api_key = api_key
+        self.client = OpenAI(api_key=self.api_key, base_url="https://api.moonshot.cn/v1")
 
     def generate(self, message, chat_history=[]):
         messages = []
@@ -293,12 +359,14 @@ class SiliconReasoner(BaseLlm):
 
 M302LLM_SUPPORTED_MODELS = [
     "o3-mini",
-    "o3-mini-2025-01-31", 
-    "gemini-2.0-flash-thinking-exp-01-21"]
+    "o3-mini-2025-01-31",
+    "gemini-2.0-flash-thinking-exp-01-21"
+    ]
 
 SILICONFLOW_SUPPORTED_MODELS = [
     "deepseek-ai/DeepSeek-R1",
-    "Pro/deepseek-ai/DeepSeek-R1"]
+    "Pro/deepseek-ai/DeepSeek-R1"
+    ]
 
 
 def BuildModel(model_name, api_key, force_json=False):
@@ -314,37 +382,202 @@ def BuildModel(model_name, api_key, force_json=False):
         return BaichuanLlm(model_name, api_key, force_json)
     elif model_name in ["glm-3-turbo", "glm-4", "glm-4v"]:
         return ZhipuLlm(model_name, api_key, force_json)
+    elif model_name in ["moonshot-v1-32k"]:
+        return KimiLlm(model_name, api_key, force_json)
     else:
         raise ValueError("未知的模型名称:", model_name)
 
 
-def test_qwen(model_name):
-    """测试通义千问模型的基本功能"""
-    # 配置API密钥
-    api_key = "sk-62081a7ee50143b298f2a92127867985"
-    
-    # 初始化Qwen模型
-    model = BuildModel(model_name, api_key, force_json=False)
-    
-    # 测试对话消息
-    message = "你好,请介绍你自己"
-    
-    # 创建聊天历史记录(可选)
-    chat_history = [
-        {"role": "user", "content": "你是谁?"},
-        {"role": "bot", "content": "我是通义千问AI助手"}
-    ]
-    
-    # 获取模型响应
-    response, reason = model.get_response(message, chat_history)
-    
-    # 打印结果
-    print("\n最终响应:")
-    print(response)
-    
-    return response
 
+
+def get_model_options():
+    """获取所有支持的模型选项"""
+    return {
+        # M302LLM模型组
+        "302": {
+            "name": "302 AI",
+            "api_key": "sk-8JaZfqVt87pgbC1NZKQUH95EBLnL4rlpZHGLCmRNJiW16WN2",
+            "models": {
+                1: "o3-mini",
+                2: "o3-mini-2025-01-31",
+                3: "gemini-2.0-flash-thinking-exp-01-21"
+            }
+        },
+        
+        
+        # SiliconFlow模型组
+        "silicon": {
+            "name": "Silicon Flow",
+            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih",
+            "models": {
+                4: "deepseek-ai/DeepSeek-R1",
+                5: "Pro/deepseek-ai/DeepSeek-R1"
+            }
+        },
+        
+        # DeepSeek模型组
+        "deepseek": {
+            "name": "DeepSeek",
+            "api_key": "sk-456392e75afa4efb812dc0e1bf792248",
+            "models": {
+                6: "deepseek-chat"
+            }
+        },
+        
+        # 通义千问模型组
+        "qwen": {
+            "name": "通义千问",
+            "api_key": "sk-62081a7ee50143b298f2a92127867985",
+            "models": {
+                7: "qwen-max",
+                8: "qwen-max-longcontext",
+                9: "qwen-plus",
+                10: "qwen-long",
+                11: "qwen-max-2025-01-25"
+            }
+        },
+        
+        # 百川模型组
+        "baichuan": {
+            "name": "百川",
+            "api_key": "sk-9d3d6ed146af1bd138c8f90898d14f94",
+            "models": {
+                12: "Baichuan4",
+                13: "Baichuan3-Turbo",
+                14: "Baichuan3-Turbo-128k",
+                15: "Baichuan2-Turbo",
+                16: "Baichuan2-Turbo-192k"
+            }
+        },
+        
+        # 智谱模型组
+        "zhipu": {
+            "name": "智谱",
+            "api_key": "027a60991fe4462fab7507bbf40fff52.jdq81S9F0brOBHJM",
+            "models": {
+                17: "glm-3-turbo",
+                18: "glm-4",
+                19: "glm-4v"
+            }
+        },
+
+        # Kimi模型组
+        "Kimi": {
+            "name": "Kimi", 
+            "api_key": "sk-KerkHwJnibU8D4cYDPaflzc0BPsucl99LzB1U5pH5drfDKx7",
+            "models": {
+                20: "moonshot-v1-32k"
+            }
+        }
+    }
+
+
+def get_api_key_by_model(model_name):
+    """根据模型名称获取对应的API密钥"""
+    model_options = get_model_options()
+    
+    # 遍历所有模型组
+    for provider in model_options.values():
+        # 检查模型是否在当前提供商的模型列表中
+        if any(model == model_name for model in provider["models"].values()):
+            return provider["api_key"]
+    return None
+
+class ModelTester:
+    def __init__(self):
+        self.model_options = get_model_options()
+        self.logger = logging.getLogger(__name__)
+        self.current_color = "\033[94m"  # 初始为蓝色
+
+    def test_single_model(self, model_name, api_key, color=None):
+        """测试单个模型"""
+        try:
+            self.logger.info(f"开始测试模型: {model_name}")
+            model = BuildModel(model_name, api_key)
+            response, reason = model.get_response("你好，请介绍自己")
+            
+            if reason:
+                print(f"{color}\n推理过程: {reason}\033[0m")
+            
+            print(f"{color}\n模型响应:\033[0m")
+            print(f"{color}{response}\033[0m")
+            self.logger.info(f"模型 {model_name} 测试成功")
+            return True
+        except Exception as e:
+            self.logger.error(f"模型 {model_name} 测试失败: {str(e)}")
+            print(f"\033[91m测试失败: {str(e)}\033[0m")
+            return False
+
+    def test_all_models(self):
+        """测试所有模型"""
+        success_count = 0
+        total_models = sum(len(provider['models']) for provider in self.model_options.values())
+        
+        for provider in self.model_options.values():
+            for model_id, model_name in provider['models'].items():
+                # 交替使用蓝色和黄色
+                self.current_color = "\033[94m" if self.current_color == "\033[93m" else "\033[93m"
+                print(f"{self.current_color}\n=== 测试模型 {model_id}: {model_name} ===\033[0m")
+                api_key = provider['api_key']
+                
+                if not api_key:
+                    print(f"\033[91m跳过模型 {model_name}: 未找到API密钥\033[0m")
+                    continue
+                    
+                if self.test_single_model(model_name, api_key, self.current_color):
+                    success_count += 1
+                
+                print(f"{self.current_color}{'=' * 50}\033[0m")
+        
+        result_msg = f"\n测试完成: 成功 {success_count}/{total_models} 个模型"
+        self.logger.info(result_msg)
+        print(f"{self.current_color}{result_msg}\033[0m")
+
+    def print_model_options(self):
+        """打印所有可用的模型选项"""
+        print("\n可用的模型选项:")
+        print("-" * 50)
+        
+        for provider_key, provider in self.model_options.items():
+            print(f"\n{provider['name']}模型:")
+            for model_id, model_name in provider['models'].items():
+                print(f"{model_id}. {model_name}")
+        
+        print("-" * 50)
+
+def test_model():
+    """测试不同模型的对话功能"""
+    tester = ModelTester()
+    tester.print_model_options()
+    
+    while True:
+        try:
+            choice = int(input("\n请输入要测试的模型编号(1-20，输入-1循环测试所有模型): "))
+            
+            if choice == -1:
+                tester.test_all_models()
+                break
+            elif 1 <= choice <= 20:
+                # 查找选择的模型
+                model_name = None
+                api_key = None
+                for provider in tester.model_options.values():
+                    if choice in provider['models']:
+                        model_name = provider['models'][choice]
+                        api_key = provider['api_key']
+                        break
+                
+                if model_name and api_key:
+                    tester.test_single_model(model_name, api_key)
+                else:
+                    print("未找到指定的模型!")
+                break
+            else:
+                print("请输入-1或1-19之间的数字!")
+        except ValueError:
+            print("请输入有效的数字!")
 
 if __name__ == "__main__":
-    
-    test_qwen("qwen-plus")
+    test_model()
+
+
