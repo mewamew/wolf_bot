@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from wolf_game import WerewolfGame
+from game import WerewolfGame
 
 app = FastAPI()
 game = WerewolfGame()
