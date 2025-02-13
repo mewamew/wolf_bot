@@ -153,21 +153,14 @@ class WerewolfGame:
             f.write(f"[狼人杀人] {player_idx}号玩家被狼人杀死\n")
         self.players[player_idx-1].be_killed()
         
+    def decide_cure_or_poison(self, player_idx, someone_will_be_killed):
+        return self.players[player_idx-1].decide_cure_or_poison(someone_will_be_killed)
     
-    def cure(self, player_idx, someone_will_be_killed):
-        # 女巫解药
-        with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
-            f.write(f"[女巫解药] {someone_will_be_killed}号玩家被女巫解药\n")
-        return self.players[player_idx-1].cure(someone_will_be_killed)
-    
-    ###########################################################################
-    def decide_poison(self, player_idx, someone_will_be_killed) -> int:
-        return self.players[player_idx-1].poison(someone_will_be_killed)
-
     def poison(self, player_idx):
         self.players[player_idx-1].be_poisoned()
         
     
+    ###########################################################################
     def speak(self, player_idx):
         # TODO增加一个log类吧！
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
@@ -240,7 +233,33 @@ class WerewolfGame:
     def check_winner(self) -> str:
         return self.judge.decide()
     
-    
+    def process_kill_votes(self, kill_votes):
+        # 统计每个玩家获得的票数
+        killed_player = -1
+        vote_count = {}
+        for vote in kill_votes:
+            target = vote.get('kill')  # 获取投票目标
+            if target is not None:  # 确保有效投票
+                if target in vote_count:
+                    vote_count[target] += 1
+                else:
+                    vote_count[target] = 1
+        
+        if not vote_count:  # 如果没有有效投票
+            return -1
+        
+        # 找出最高票数
+        max_votes = max(vote_count.values())
+        
+        # 找出获得最高票数的玩家
+        candidates = [player for player, votes in vote_count.items() if votes == max_votes]
+        
+        # 如果只有一个最高票，直接返回；如果有平票，随机选择一个
+        if len(candidates) == 1:
+            killed_player = candidates[0]
+        return killed_player
+
+
 if __name__ == "__main__":
     game = WerewolfGame()
     game.start()
@@ -248,15 +267,30 @@ if __name__ == "__main__":
     #player = game.get_players()
     #print(player)
     
-    #game.divine(5)
-    #game.decide_kill(1)
-    #game.decide_kill(8)
-    #game.decide_kill(9)
-    #print("第二轮投票")
-    #game.decide_kill(1, True)
-    #game.decide_kill(8, True)
-    #game.decide_kill(9, True)
-    #game.kill(5)
-    game.cure(6, 6)
+    #测试第一晚
+    game.divine(5) #预言家查验
+    kill_votes=[]
+    kill_votes.append(game.decide_kill(1)) #狼人决定杀人
+    kill_votes.append(game.decide_kill(8)) #狼人决定杀人
+    kill_votes.append(game.decide_kill(9)) #狼人决定杀人
     
-    game.toggle_day_night()
+    killed_player = game.process_kill_votes(kill_votes)
+    if killed_player != -1:
+        print(f"第一轮投票结果: {killed_player} 号玩家被杀")
+    else:
+        print("投票无效，继续第二轮投票")
+        kill_votes.append(game.decide_kill(1)) #狼人决定杀人
+        kill_votes.append(game.decide_kill(8)) #狼人决定杀人
+        kill_votes.append(game.decide_kill(9)) #狼人决定杀人
+        killed_player = game.process_kill_votes(kill_votes)
+        print(f"第二轮投票结果: {killed_player} 号玩家被杀")
+    
+    decision = game.decide_cure_or_poison(6, killed_player)
+    if decision["cure"] == 0:
+        game.kill(killed_player)
+    
+    if decision["poison"] != -1:
+        game.poison(decision["poison"])
+        
+    
+    

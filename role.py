@@ -252,34 +252,20 @@ class Witch(BaseRole):
     def speak(self):
         extra_data = self.make_extra_data()
         return super().speak(extra_data)
+    
+    def decide_cure_or_poison(self, someone_will_be_killed):
+        """决定是否要治疗或毒杀"""
+        extra_data = self.make_extra_data()
+        if someone_will_be_killed != -1:
+            extra_data['今晚发生了什么'] = f'{someone_will_be_killed}号玩家将被杀害'
+        else:
+            extra_data['今晚发生了什么'] = "没有人将被杀害"
+        resp_dict = self.handle_action('prompts/prompt_cure_or_poison.yaml', extra_data)
+        if resp_dict:
+            self.cured_someone = resp_dict['cure'] if resp_dict['cure'] != -1 else self.cured_someone
+            self.poisoned_someone = resp_dict['poison'] if resp_dict['poison'] != -1 else self.poisoned_someone
+            return resp_dict
 
-    def cure(self, someone_will_be_killed):
-        """决定是否要治疗"""
-        if self.cured_someone != -1:
-            return None
-        
-        extra_data = self.make_extra_data()
-        extra_data['cure_target'] = f'是否要救治{someone_will_be_killed}号玩家'
-        resp_dict = self.handle_action('prompts/prompt_cure.yaml', extra_data)
-        if resp_dict:
-            if resp_dict['cure']==1:
-                self.game.history.add_event(CureEvent(self.player_index))
-                self.cured_someone = someone_will_be_killed
-            return resp_dict
-    
-    def poison(self, someone_will_be_killed):
-        """ 决定是否要毒杀某人"""
-        if self.poisoned_someone != -1:
-            return None
-        
-        extra_data = self.make_extra_data()
-        extra_data['someone_will_be_killed'] = f'{someone_will_be_killed}号玩家将被杀害'
-        resp_dict = self.handle_action('prompts/prompt_poison.yaml', extra_data)
-        if resp_dict:
-            if resp_dict['poison'] != -1:
-                self.poisoned_someone = resp_dict['poison']
-            return resp_dict
-    
-        
+
 
     
