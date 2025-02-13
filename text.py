@@ -66,6 +66,7 @@ def night_phase(game):
         game.divine(seer['index'])
         
     #狼人投票
+    game.reset_wolf_want_kill()
     kill_votes=[]
     for wolf in wolves:
         if wolf['is_alive']:
@@ -84,18 +85,26 @@ def night_phase(game):
         else:
             print(f"第二轮投票结果: 平安夜")
     
+    
     if witch['is_alive']:
         decision = game.decide_cure_or_poison(witch['index'], killed_player)
-        if decision["cure"] == 0 and killed_player != -1:
-            if current_day == 1:
-                #第一个晚上才允许发言
-                last_words = game.last_words(killed_player, "被狼人杀死")
-                if killed_player == hunter['index']:
-                    print("猎人被杀死，发动反击")
-                    if last_words["attack"] != -1:
-                        game.attack(last_words["attack"])
+        if decision["cure"] == 0:
+            if killed_player != -1:
+                if current_day == 1:
+                    #第一个晚上才允许发言
+                    last_words = game.last_words(killed_player, "被狼人杀死")
+                    if killed_player == hunter['index']:
+                        print("猎人被杀死，发动反击")
+                        if last_words["attack"] != -1:
+                            game.attack(last_words["attack"])
+                
+                #女巫不救
+                game.kill(killed_player)
+        else:
+            #女巫救人
+            if killed_player != -1:
+                game.cure(killed_player)
             
-            game.kill(killed_player)
 
         if decision["poison"] != -1:
             if current_day == 1:
@@ -106,7 +115,11 @@ def night_phase(game):
                     if last_words["attack"] != -1:
                         game.attack(last_words["attack"])
             game.poison(decision["poison"])
-    
+    else:
+        #女巫不在
+        if killed_player != -1:
+            game.kill(killed_player)
+
     
 def day_phase(game):
     # 天亮了...

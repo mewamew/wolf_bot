@@ -26,9 +26,7 @@ class Judge:
             5. 事件列表
         '''
         with open('prompts/prompt_judge.yaml', 'r', encoding='utf-8') as file:
-            prompt_template = yaml.safe_load(file)
-            print(prompt_template)
-            
+            prompt_template = yaml.safe_load(file)            
             # 获取玩家信息并填充模板
             players = self.game.get_players()
             prompt_template['player_state'] = [
@@ -43,7 +41,7 @@ class Judge:
             # 更新当前天数阶段
             prompt_template['day'] = f"当前是第{self.game.current_day}天{self.game.current_phase}"
             # 更新事件
-            prompt_template['curr_state'] = self.game.history.get_history()
+            prompt_template['curr_state'] = self.game.history.get_history(show_all=True)
             
             prompt_str = json.dumps(prompt_template, ensure_ascii=False)
             print(prompt_str)

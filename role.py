@@ -119,6 +119,11 @@ class BaseRole:
         '''被毒杀'''
         self.is_alive = False
         self.game.history.add_event(PoisonEvent(self.player_index))
+        
+    def be_cured(self):
+        '''被治愈'''
+        self.is_alive = True
+        self.game.history.add_event(CureEvent(self.player_index))
     
         
 class Villager(BaseRole):

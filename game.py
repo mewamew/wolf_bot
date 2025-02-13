@@ -149,10 +149,11 @@ class WerewolfGame:
     
     def kill(self, player_idx):
         if player_idx == -1:
-            return
+            raise ValueError("player_idx == -1")
         # 狼人杀人
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
             f.write(f"[狼人杀人] {player_idx}号玩家被狼人杀死\n")
+        print("[狼人杀人] {}号玩家被狼人杀死".format(player_idx))
         self.players[player_idx-1].be_killed()
         
     def decide_cure_or_poison(self, player_idx, someone_will_be_killed):
@@ -160,6 +161,9 @@ class WerewolfGame:
     
     def poison(self, player_idx):
         self.players[player_idx-1].be_poisoned()
+        
+    def cure(self, player_idx):
+        self.players[player_idx-1].be_cured()
         
     def speak(self, player_idx):            
         resp = self.players[player_idx-1].speak()
@@ -234,29 +238,5 @@ class WerewolfGame:
         return self.judge.decide()
 
 
-def process_kill_votes(kill_votes):
-    # 统计每个玩家获得的票数
-    killed_player = -1
-    vote_count = {}
-    for vote in kill_votes:
-        target = vote.get('kill')  # 获取投票目标
-        if target is not None:  # 确保有效投票
-            if target in vote_count:
-                vote_count[target] += 1
-            else:
-                vote_count[target] = 1
-    
-    if not vote_count:  # 如果没有有效投票
-        return -1
-    
-    # 找出最高票数
-    max_votes = max(vote_count.values())
-    
-    # 找出获得最高票数的玩家
-    candidates = [player for player, votes in vote_count.items() if votes == max_votes]
-    
-    # 如果只有一个人得票最高，处决该玩家
-    if len(candidates) == 1:
-        killed_player = candidates[0]
-    return killed_player
+
 

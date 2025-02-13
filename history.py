@@ -4,6 +4,7 @@ class Event:
     def __init__(self, event_type, player_idx):
         self.event_type = event_type  # 事件类型
         self.player_idx = player_idx
+        self.is_public = True  # 是否公开事件
 
     def desc(self)->str:
         pass
@@ -59,13 +60,15 @@ class KillEvent(Event):
 class CureEvent(Event):
     def __init__(self, player_idx):
         super().__init__("cure", player_idx)
+        self.is_public = False
 
     def desc(self)->str:
-        return f'某个玩家被女巫救治'
+        return f'{self.player_idx}号玩家】被女巫救治'
     
 class PoisonEvent(Event):
     def __init__(self, player_idx):
         super().__init__("poison", player_idx)
+        self.is_public = False
 
     def desc(self)->str:
         return f'【{self.player_idx}号玩家】被投毒'
@@ -76,18 +79,26 @@ class Round:
         self.day_events = []
         self.night_events = []
 
-    def get_events(self):
+    def get_events(self, show_all = False):
         events = {
             "day": f"第{self.day_count+1}天",
             "day_events": [],
             "night_events": []
         }
         for event in self.day_events:
-            events["day_events"].append(event.desc())
+            if show_all:
+                events["day_events"].append(event.desc())
+            else:
+                if event.is_public:
+                    events["day_events"].append(event.desc())
         for event in self.night_events:
-            events["night_events"].append(event.desc())
+            if show_all:
+                events["night_events"].append(event.desc())
+            else:
+                if event.is_public:
+                    events["night_events"].append(event.desc())
         return events
-
+    
     def add_event(self, is_daytime, event):
         if is_daytime:
             self.day_events.append(event)
@@ -108,13 +119,13 @@ class History:
     def add_event(self, event):
         self.rounds[self.day_count].add_event(self.is_daytime, event)
 
-    def get_history(self):
+    def get_history(self, show_all = False):
         '''
         构造一个事件列表
         '''
         history = []
         for round in self.rounds:
-            history.append(round.get_events())
+            history.append(round.get_events(show_all))
         return history
 
     def toggle_day_night(self):
