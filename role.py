@@ -13,7 +13,7 @@ class BaseRole:
         self.is_alive = True
         self.game = game
         self.model = BuildModel(model_name, api_key, force_json=True) 
-        print_white(f"{self.player_index}号玩家的角色是{self.role_type}")
+        print_white(f"{self.player_index}号玩家的角色是{self.role_type}, 模型使用{self.model.model_name}")
 
     def __str__(self):
         return f"玩家编号: {self.player_index}, 角色类型: {self.role_type}"
@@ -191,20 +191,11 @@ class Seer(BaseRole):
 class Wolf(BaseRole):
     def __init__(self, player_index, model_name, api_key,  game):
         super().__init__(player_index, "狼人", model_name, api_key,  game)
-        self.other_wolf = -1
     
-    def find_other_wolf(self):
-        """找到其他狼人"""
-        for player in self.game.players:
-            if player.role_type == "狼人" and player.player_index != self.player_index:
-                return player.player_index
-        return None
 
     def make_extra_data(self):
-        if self.other_wolf == -1:
-            self.other_wolf = self.find_other_wolf()
         extra_data = {
-            "你的队友": f"【{self.other_wolf}号玩家】也是狼人。他是你的队友。"
+            "狼人列表": self.game.get_wolves()
         }
         return extra_data
 
@@ -222,11 +213,15 @@ class Wolf(BaseRole):
         return super().speak(extra_data)
     
     
-    def decide_kill(self, other_wolf_want_kill=-1):
+    def decide_kill(self, want_kill=None):
         extra_data = self.make_extra_data()
-        if other_wolf_want_kill != -1:
-            extra_data['other_wolf_want_kill'] = f'另外的狼人想杀掉{other_wolf_want_kill}号玩家'
+        if want_kill:
+            extra_data['第几轮投票'] = 2
+            extra_data['第一轮投票结果'] = want_kill
+        else:
+            extra_data['第几轮投票'] = 1
         resp_dict = self.handle_action('prompts/prompt_kill.yaml', extra_data)
+        
         if resp_dict:
             return resp_dict
         

@@ -14,7 +14,7 @@ class WerewolfGame:
         self.current_day = 1
         self.current_phase = "夜晚" 
         self.vote_result = {}
-        self.wolf_want_kill = []
+        self.wolf_want_kill = {}
         self.start_time = datetime.now().strftime("%Y%m%d%H%M")
 
         # 创建logs目录（如果不存在）
@@ -27,7 +27,7 @@ class WerewolfGame:
     def start(self):
         self.history = History()
         self.vote_result = {}
-        self.wolf_want_kill = []
+        self.wolf_want_kill = {}
         self.current_day = 1  # 游戏开始时,设置为第1天
         self.current_phase = "夜晚"  # 初始化当前阶段为夜晚
         self.initialize_roles()
@@ -97,14 +97,56 @@ class WerewolfGame:
         for player in self.players:
             players[player.player_index] = {
                 "index": player.player_index,
-                "name": f"{player.player_index}号玩家[{player.role_type}@{player.model.model_name}]",
+                "name": f"{player.player_index}号玩家",
                 "role_type": player.role_type,
                 "is_alive": player.is_alive,
                 "model": player.model.model_name
             }
         return players
     
-
+    def get_wolves(self):
+        wolfs = []
+        for player in self.players:
+            if player.role_type == "狼人":
+                wolfs.append({
+                    "player_index": player.player_index,
+                    "is_alive": player.is_alive
+                })
+        return wolfs
+    
+    def divine(self, player_idx):
+        # 预言家揭示身份逻辑
+        with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
+            f.write(f"[预言家查验]\n")
+        resp = self.players[player_idx-1].divine()
+        with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
+            if "thinking" in resp:
+                f.write(f"思考过程：{resp['thinking']}\n")
+            role_type = self.players[resp['divine']-1].role_type
+            f.write(f"查验了{resp['divine']}号玩家，身份是：{role_type}\n")
+        return resp
+    
+    def decide_kill(self, player_idx, is_second_vote=False):
+        # 决定杀谁
+        if is_second_vote:
+            # 将字典转换为对象列表
+            kill_list = [{"player_index": idx, "kill": info["kill"], "reason": info["reason"]} 
+                        for idx, info in self.wolf_want_kill.items()]
+            result = self.players[player_idx-1].decide_kill(kill_list)
+        else:
+            result = self.players[player_idx-1].decide_kill()
+            self.wolf_want_kill[player_idx] = {
+                "kill": result["kill"],
+                "reason": result["reason"]
+            }
+        
+        with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
+            f.write(f"[狼人{player_idx}号决定杀人]\n")
+            if "thinking" in result:
+                f.write(f"思考过程：{result['thinking']}\n")
+            f.write(f"决定杀死{result['kill']}号玩家\n")
+        return result
+    
     def speak(self, player_idx):
         # TODO增加一个log类吧！
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
@@ -162,35 +204,13 @@ class WerewolfGame:
             f.write(f"[猎人攻击] {player_idx}号玩家被猎人攻击\n")
         self.players[player_idx-1].be_attacked()
         
-    def divine(self, player_idx):
-        # 预言家揭示身份逻辑
-        with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
-            f.write(f"[预言家查验]\n")
-        resp = self.players[player_idx-1].divine()
-        with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
-            if "thinking" in resp:
-                f.write(f"思考过程：{resp['thinking']}\n")
-            role_type = self.players[resp['divine']-1].role_type
-            f.write(f"查验了{resp['divine']}号玩家，身份是：{role_type}\n")
-        return resp
-
     def reset_wolf_want_kill(self):
         self.wolf_want_kill = []
         
     def get_wolf_want_kill(self):
         return self.wolf_want_kill
 
-    def decide_kill(self, player_idx, other_wolf_want_kill=-1):
-        # 决定杀谁
-        with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
-            f.write(f"[狼人{player_idx}号决定杀人]\n")
-        result = self.players[player_idx-1].decide_kill(other_wolf_want_kill)
-        self.wolf_want_kill.append(result["kill"])
-        with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
-            if "thinking" in result:
-                f.write(f"思考过程：{result['thinking']}\n")
-            f.write(f"决定杀死{result['kill']}号玩家\n")
-        return result
+    
 
     def kill(self, player_idx):
         # 狼人杀人
@@ -212,3 +232,23 @@ class WerewolfGame:
     
     def check_winner(self) -> str:
         return self.judge.decide()
+    
+    
+if __name__ == "__main__":
+    game = WerewolfGame()
+    game.start()
+   
+    #player = game.get_players()
+    #print(player)
+    
+    #game.divine(5)
+    game.decide_kill(1)
+    game.decide_kill(8)
+    game.decide_kill(9)
+    print("第二轮投票")
+    game.decide_kill(1, True)
+    game.decide_kill(8, True)
+    game.decide_kill(9, True)
+    
+    
+    game.toggle_day_night()
