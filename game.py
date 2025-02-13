@@ -66,7 +66,7 @@ class WerewolfGame:
             
         # 使用配置文件中的模型和API key
         self.players = [
-            role(i + 1, config["players"][i]["name"], config["players"][i]["api_key"], self) 
+            role(i + 1, config["players"][i]["model_name"], config["players"][i]["api_key"], self) 
             for i, role in enumerate(roles)
         ]
         
@@ -74,7 +74,7 @@ class WerewolfGame:
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
             f.write("=== 游戏角色初始化 ===\n")
             for i, player in enumerate(self.players):
-                f.write(f"{i+1}号玩家 - 角色：{player.role_type}，使用模型：{config['players'][i]['name']}\n")
+                f.write(f"{i+1}号玩家 - 角色：{player.role_type}，使用模型：{config['players'][i]['model_name']}\n")
             f.write("==================\n")
         
         # 创建判决者
@@ -147,6 +147,27 @@ class WerewolfGame:
             f.write(f"决定杀死{result['kill']}号玩家\n")
         return result
     
+    def kill(self, player_idx):
+        # 狼人杀人
+        with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
+            f.write(f"[狼人杀人] {player_idx}号玩家被狼人杀死\n")
+        self.players[player_idx-1].be_killed()
+        
+    
+    def cure(self, player_idx, someone_will_be_killed):
+        # 女巫解药
+        with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
+            f.write(f"[女巫解药] {someone_will_be_killed}号玩家被女巫解药\n")
+        return self.players[player_idx-1].cure(someone_will_be_killed)
+    
+    ###########################################################################
+    def decide_poison(self, player_idx, someone_will_be_killed) -> int:
+        return self.players[player_idx-1].poison(someone_will_be_killed)
+
+    def poison(self, player_idx):
+        self.players[player_idx-1].be_poisoned()
+        
+    
     def speak(self, player_idx):
         # TODO增加一个log类吧！
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
@@ -211,24 +232,10 @@ class WerewolfGame:
         return self.wolf_want_kill
 
     
-
-    def kill(self, player_idx):
-        # 狼人杀人
-        with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
-            f.write(f"[狼人杀人] {player_idx}号玩家被狼人杀死\n")
-        self.players[player_idx-1].be_killed()
-
     def get_day(self):
         return self.current_day
     
-    def cure(self, player_idx, someone_will_be_killed):
-        return self.players[player_idx-1].cure(someone_will_be_killed)
 
-    def decide_poison(self, player_idx, someone_will_be_killed) -> int:
-        return self.players[player_idx-1].poison(someone_will_be_killed)
-
-    def poison(self, player_idx):
-        self.players[player_idx-1].be_poisoned()
     
     def check_winner(self) -> str:
         return self.judge.decide()
@@ -242,13 +249,14 @@ if __name__ == "__main__":
     #print(player)
     
     #game.divine(5)
-    game.decide_kill(1)
-    game.decide_kill(8)
-    game.decide_kill(9)
-    print("第二轮投票")
-    game.decide_kill(1, True)
-    game.decide_kill(8, True)
-    game.decide_kill(9, True)
-    
+    #game.decide_kill(1)
+    #game.decide_kill(8)
+    #game.decide_kill(9)
+    #print("第二轮投票")
+    #game.decide_kill(1, True)
+    #game.decide_kill(8, True)
+    #game.decide_kill(9, True)
+    #game.kill(5)
+    game.cure(6, 6)
     
     game.toggle_day_night()

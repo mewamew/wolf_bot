@@ -2,47 +2,47 @@
     "randomize_roles": false,
     "players": [
         {
-            "name": "qwen-max-2025-01-25",
+            "model_name": "qwen-max-2025-01-25",
             "api_key": "sk-62081a7ee50143b298f2a92127867985",
             "role": "狼人"
         },
         {
-            "name": "o3-mini-2025-01-31",
+            "model_name": "o3-mini-2025-01-31",
             "api_key": "sk-8JaZfqVt87pgbC1NZKQUH95EBLnL4rlpZHGLCmRNJiW16WN2",
             "role": "村民"
         },
         {
-            "name": "o3-mini-2025-01-31",
+            "model_name": "o3-mini-2025-01-31",
             "api_key": "sk-8JaZfqVt87pgbC1NZKQUH95EBLnL4rlpZHGLCmRNJiW16WN2",
             "role": "村民"
         },
         {
-            "name": "o3-mini-2025-01-31",
+            "model_name": "o3-mini-2025-01-31",
             "api_key": "sk-8JaZfqVt87pgbC1NZKQUH95EBLnL4rlpZHGLCmRNJiW16WN2",
             "role": "村民"
         },
         {
-            "name": "qwen-max-2025-01-25",
+            "model_name": "qwen-max-2025-01-25",
             "api_key": "sk-62081a7ee50143b298f2a92127867985",
             "role": "预言者"
         },
         {
-            "name": "o3-mini-2025-01-31",
-            "api_key": "sk-8JaZfqVt87pgbC1NZKQUH95EBLnL4rlpZHGLCmRNJiW16WN2",
+            "model_name": "Pro/deepseek-ai/DeepSeek-R1",
+            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih",
             "role": "女巫"
         },
         {
-            "name": "o3-mini-2025-01-31",
+            "model_name": "o3-mini-2025-01-31",
             "api_key": "sk-8JaZfqVt87pgbC1NZKQUH95EBLnL4rlpZHGLCmRNJiW16WN2",
             "role": "猎人"
         },
         {
-            "name": "qwen-max-2025-01-25",
+            "model_name": "qwen-max-2025-01-25",
             "api_key": "sk-62081a7ee50143b298f2a92127867985",
             "role": "狼人"
         },
         {
-            "name": "qwen-max-2025-01-25",
+            "model_name": "qwen-max-2025-01-25",
             "api_key": "sk-62081a7ee50143b298f2a92127867985",
             "role": "狼人"
         }
