@@ -10,12 +10,7 @@ class GameData {
 
         const fetchPromise = fetch(url, options);
         const response = await Promise.race([fetchPromise, timeoutPromise]);
-        await this.delay(1000);
         return response.json();
-    }
-
-    async delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     async startGame() {
@@ -26,6 +21,32 @@ class GameData {
         return this.fetchData('/status');
     }
 
+    async divine(action) {
+        return this.fetchData('/divine', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(action)
+        });
+    }
+
+    async decideKill(action) {
+        return this.fetchData('/decide_kill', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(action)
+        });
+    }
+
+    
+    async resetWolfWantKill() {
+        return this.fetchData('/reset_wolf_want_kill', { method: 'POST' });
+    }
+
+    async getWolfWantKill() {
+        return this.fetchData('/get_wolf_want_kill');
+    }
+
+    ////////////////////////////////////////////////////
     async getCurrentTime() {
         const response = await fetch('/current_time');
         return await response.json();
@@ -55,6 +76,8 @@ class GameData {
             body: JSON.stringify(action)
         });
     }
+
+
 
     async execute() {
         return this.fetchData('/execute', {
@@ -90,29 +113,7 @@ class GameData {
         return this.fetchData('/check_winner');
     }
 
-    async divine(action) {
-        return this.fetchData('/divine', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(action)
-        });
-    }
-
-    async resetWolfWantKill() {
-        return this.fetchData('/reset_wolf_want_kill', { method: 'POST' });
-    }
-
-    async getWolfWantKill() {
-        return this.fetchData('/get_wolf_want_kill');
-    }
-
-    async decideKill(action) {
-        return this.fetchData('/decide_kill', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(action)
-        });
-    }
+    
 
 
     async cure(action) {

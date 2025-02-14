@@ -20,7 +20,7 @@ class AttackAction(BaseModel):
     
 class DecideKillAction(BaseModel):
     player_idx: int
-    other_wolf_want_kill: int = -1
+    is_second_vote: bool
     
 class CureAction(BaseModel):
     player_idx: int
@@ -49,6 +49,30 @@ def start_game():
 def get_status():
     players = game.get_players()
     return players
+
+@app.post("/divine")
+def divine(action: PlayerAction):
+    result = game.divine(action.player_idx)
+    return result
+
+
+@app.post("/reset_wolf_want_kill")
+def reset_wolf_want_kill():
+    game.reset_wolf_want_kill()
+    return {"message": "狼人想杀的目标已重置"}
+
+@app.get("/get_wolf_want_kill")
+def get_wolf_want_kill():
+    result = game.get_wolf_want_kill()
+    return {"wolf_want_kill": result}
+
+
+@app.post("/decide_kill")
+def decide_kill(action: DecideKillAction):
+    result = game.decide_kill(action.player_idx, action.is_second_vote)
+    return result
+
+##########################################
 
 @app.get("/current_time")
 def get_current_time():
@@ -121,26 +145,8 @@ def toggle_day_night():
     return {"message": "Day/Night toggled"}
 
 
-@app.post("/divine")
-def divine(action: PlayerAction):
-    result = game.divine(action.player_idx)
-    return result
-
-@app.post("/reset_wolf_want_kill")
-def reset_wolf_want_kill():
-    game.reset_wolf_want_kill()
-    return {"message": "狼人想杀的目标已重置"}
-
-@app.get("/get_wolf_want_kill")
-def get_wolf_want_kill():
-    result = game.get_wolf_want_kill()
-    return {"wolf_want_kill": result}
 
 
-@app.post("/decide_kill")
-def decide_kill(action: DecideKillAction):
-    result = game.decide_kill(action.player_idx, action.other_wolf_want_kill)
-    return result
 
 
 @app.post("/cure")

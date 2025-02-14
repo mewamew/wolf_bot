@@ -11,9 +11,8 @@ async function sleep(ms) {
     await ui.setup();
     await ui.preload();
     await ui.loadSprites();
-    await ui.showNightBackground();
     const game = new Game(ui);
-    //await game.start();
+    await game.start();
 
     let is_end = false;
     let isPaused = false;

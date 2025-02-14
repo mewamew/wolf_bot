@@ -46,7 +46,9 @@ class Ui {
             { alias: 'player_6_small', src: 'assets/player_6_small.png' },
             { alias: 'player_7_small', src: 'assets/player_7_small.png' },
             { alias: 'player_8_small', src: 'assets/player_8_small.png' },
-            { alias: 'player_9_small', src: 'assets/player_9_small.png' }
+            { alias: 'player_9_small', src: 'assets/player_9_small.png' },
+            //墓碑
+            { alias: 'death', src: 'assets/death.png' },
         ];
         await PIXI.Assets.load(assets);
     }
@@ -66,8 +68,8 @@ class Ui {
     }
 
     async loadSprites() {
-        this.bg_day = await this.loadSprite('bg_day', 1, true, 0, 0); //背景图
-        this.bg_night = await this.loadSprite('bg_night', 1, false, 0, 0); //对话框
+        this.bg_day = await this.loadSprite('bg_day', 1, false, 0, 0); //背景图
+        this.bg_night = await this.loadSprite('bg_night', 1, true, 0, 0); //对话框
         this.bg_black = await this.loadSprite('bg_black', 101, false, 0, 0); //对话框
         this.chat_box = await this.loadSprite('chat_box', 3, false, 1450, 150); //聊天框
         this.status_bar = await this.loadSprite('status_bar', 3, true, 0, 1710); //状态栏
@@ -84,6 +86,12 @@ class Ui {
             this.players_small.push(await this.loadSprite(`player_${i}_small`, 4, true, 100+(i-1)*420, 1800, 0.7));
         }
 
+        //加载墓碑
+        this.death = []
+        for (let i = 1; i <= 9; i++) {
+            this.death.push(await this.loadSprite(`death`, 5, false, 100+(i-1)*420, 1800, 0.8));
+        }
+
         //加载数字
         this.players_vote = [];
         for (let i = 1; i <= 9; i++) {
@@ -97,7 +105,7 @@ class Ui {
         //加载玩家编号
         this.players_number = [];
         for (let i = 1; i <= 9; i++) {
-            this.players_number.push(await this.loadSprite(`n${i}`, 4, true, 200+(i-1) * 420, 2010));
+            this.players_number.push(await this.loadSprite(`n${i}`, 6, true, 200+(i-1) * 420, 2010));
         }
 
         //加载文字spirit
@@ -133,6 +141,10 @@ class Ui {
         this.players_vote[player_index-1][number-1].visible = true;
     }
 
+    async killPlayer(player_index) {
+        this.death[player_index-1].visible = true;
+    }
+
     //隐藏所有投票
     async hideAllVotes() {
         for (let i = 0; i < this.players_vote.length; i++) {
@@ -148,6 +160,7 @@ class Ui {
         }
         this.players[player_index-1].visible = true;
     }
+
 
     async showDayBackground() {
         this.bg_day.visible = true;
