@@ -1,42 +1,5 @@
 import Game from "./game.js";
-
-
-const app = new PIXI.Application();
-
-
-
-async function setup()
-{
-    await app.init({ background: '#000000', resizeTo: window });
-    document.body.appendChild(app.canvas);
-}
-
-
-async function preload()
-{
-    const assets = [
-        { alias: 'bg_day', src: 'assets/bg_day.png' },
-        { alias: 'bg_night', src: 'assets/bg_night.png' },
-        { alias: 'bg_dark', src: 'assets/bg_dark.png' },
-        { alias: 'info_speak', src: 'assets/info_speak.png' },
-        { alias: 'info_think', src: 'assets/info_think.png' },
-        { alias: 'info_result', src: 'assets/info_result.png' },
-        { alias: '狼人a', src: 'assets/红太狼.png' },
-        { alias: '狼人b', src: 'assets/灰太狼.png' },
-        { alias: '女巫', src: 'assets/芙莉莲.png' },
-        { alias: '村民', src: 'assets/村民.png' },
-        { alias: '猎人', src: 'assets/猎人.png' },
-        { alias: '预言家', src: 'assets/预言家.png' },
-        { alias: '狼人a_小', src: 'assets/红太狼_小.png' },
-        { alias: '狼人b_小', src: 'assets/灰太狼_小.png' },
-        { alias: '女巫_小', src: 'assets/芙莉莲_小.png' },
-        { alias: '村民_小', src: 'assets/村民_小.png' },
-        { alias: '猎人_小', src: 'assets/猎人_小.png' },
-        { alias: '预言家_小', src: 'assets/预言家_小.png' },
-        { alias: 'dead', src: 'assets/dead.png' }
-    ];
-    await PIXI.Assets.load(assets);
-}
+import Ui from "./ui.js";
 
 async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -44,32 +7,33 @@ async function sleep(ms) {
 
 // Asynchronous IIFE
 (async () => {
-    await setup();
-    await preload();
+    const ui = new Ui();
+    await ui.setup();
+    await ui.preload();
+    await ui.loadSprites();
+    await ui.showNightBackground();
+    const game = new Game(ui);
+    //await game.start();
 
-    const game = new Game(app);
-    await game.start();
-    
-    while (true) {
-        await game.nightPhase();
-        const w1 = await game.checkWinner();
-        if (w1 != "胜负未分") {
-            console.log(`胜利者是 ${w1}`);
-            game.background.showResultInfo(`胜利者是 ${w1}`);
-            break;
+    let is_end = false;
+    let isPaused = false;
+
+    document.addEventListener('keydown', (event) => {
+        if (event.code === 'Space') {
+            isPaused = !isPaused;
+            if(isPaused) {
+                console.log("暂停");
+            } else {
+                console.log("恢复");
+            }
         }
+    });
 
-        await game.toggleDayNight();
-        await game.dayPhase();
-
-        const w2 = await game.checkWinner();
-        if (w2 != "胜负未分") {
-            console.log(`胜利者是 ${w2}`);
-            game.background.showResultInfo(`胜利者是 ${w2}`);
-            break;
+    while (!is_end) {
+        if (!isPaused) {
+            is_end = await game.run();
+        } else {
+            await sleep(100);
         }
-        await game.toggleDayNight();
     }
-
-
 })();
