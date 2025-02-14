@@ -2,7 +2,6 @@ from openai import OpenAI
 from dashscope import Generation
 from http import HTTPStatus
 from zhipuai import ZhipuAI
-import google.generativeai as genai
 import json
 import dashscope
 import requests
@@ -223,32 +222,7 @@ class BaichuanLlm(BaseLlm):
         else:
             raise Exception(f"请求失败: {response.status_code}, {response.text}")
 
-'''
-谷歌帐号没申请成功，比较麻烦，推荐直接用302ai的模型
-gemini-2.0-flash-thinking-exp-01-21
 
-'''
-class GeminiLlm(BaseLlm):
-    def __init__(self, model_name, api_key, force_json=False):
-        super().__init__(model_name, force_json)
-        self.api_key = api_key
-        genai.configure(api_key=self.api_key)
-
-    def generate(self, message, chat_history=[]):
-        messages = []
-        if self.force_json:
-            messages = ["请严格使用JSON格式输出，确保返回的字符串是有效的JSON"]
-        for msg in chat_history:
-            if msg["role"] == "bot":
-                messages.append(msg["content"])
-            else:
-                messages.append(msg["content"])
-        messages.append(message)
-
-        model = genai.GenerativeModel(self.model_name)
-        chat = model.start_chat()
-        response = chat.send_message("\n".join(messages))
-        return response.text, None
 
 '''
 glm-3-turbo

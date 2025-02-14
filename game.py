@@ -146,6 +146,31 @@ class WerewolfGame:
                 f.write(f"思考过程：{result['thinking']}\n")
             f.write(f"决定杀死{result['kill']}号玩家\n")
         return result
+
+    def get_wolf_want_kill(self):
+        # 统计每个玩家获得的票数
+        vote_count = {}
+        for player_idx, info in self.wolf_want_kill.items():
+            target = info.get('kill')  # 获取投票目标
+            if target is not None:  # 确保有效投票
+                if target in vote_count:
+                    vote_count[target] += 1
+                else:
+                    vote_count[target] = 1
+        
+        if not vote_count:  # 如果没有有效投票
+            return -1
+        
+        # 找出最高票数
+        max_votes = max(vote_count.values())
+        
+        # 找出获得最高票数的玩家
+        candidates = [player for player, votes in vote_count.items() if votes == max_votes]
+        
+        # 如果只有一个人得票最高，处决该玩家
+        if len(candidates) == 1:
+            return candidates[0]
+        return -1
     
     def kill(self, player_idx):
         if player_idx == -1:
@@ -226,17 +251,6 @@ class WerewolfGame:
     def get_day(self):
         return self.current_day
     
-
-    def get_wolf_want_kill(self):
-        # 将字典转换为对象列表
-        kill_list = [{"player_index": idx, "kill": info["kill"], "reason": info["reason"]} 
-                    for idx, info in self.wolf_want_kill.items()]
-        return kill_list
-    
     
     def check_winner(self) -> str:
         return self.judge.decide()
-
-
-
-

@@ -109,7 +109,7 @@ class Ui {
         }
 
         //加载文字spirit
-        this.speakTextSpirit = this.initTextSpirit(5, 1600, 400, 72, 90, '#ffffff');
+        this.speakTextSpirit = this.initTextSpirit(5, 1600, 400, 80, 110, '#ffffff');
         this.titleTextSpirit = this.initTextSpirit(5, 1600, 200, 90, 90, '#00ffff');
     }
 
