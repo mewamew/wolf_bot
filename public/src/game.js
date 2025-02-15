@@ -93,10 +93,10 @@ class WitchAction extends Action {
 
     async do() {
         const witch = this.game.get_witch();
+        const result = await this.game.gameData.getWolfWantKill();
+        const killedPlayer = result.wolf_want_kill;
         if (!witch.is_alive) {
             //女巫已经死了
-            const result = await this.game.gameData.getWolfWantKill();
-            const killedPlayer = result.wolf_want_kill;
             if (killedPlayer != -1) {
                 await this.game.gameData.kill({ player_idx: killedPlayer });
                 await this.someone_die(killedPlayer, "被狼人杀死");
@@ -109,6 +109,8 @@ class WitchAction extends Action {
             let cureWho = "我决定今晚不治疗！"
             if (1 == result.cure) {
                 cureWho = `我决定治疗玩家！`;
+                const result = await this.game.gameData.cure({ player_idx: killedPlayer });
+                console.log(result);
             }
 
             let poisonWho = "我决定今晚不毒杀！"

@@ -113,6 +113,10 @@ def poison(action: PoisonAction):
     game.poison(action.player_idx)
     return {"message": f"玩家 {action.player_idx} 被毒死"}
 
+@app.post("/cure")
+def cure(action: PlayerAction):
+    game.cure(action.player_idx)
+    return {"message": "治疗成功"}
 
 @app.post("/speak")
 def speak(action: PlayerAction):
@@ -144,7 +148,10 @@ def execute():
     voted_out = [player for player, count in votes.items() if count == max_votes]
     
     if len(voted_out) > 1:
-        return {"message": "投票结果有多个，没人被处决"}
+        return {
+            "message": "投票结果有多个，没人被处决",
+            "executed_player": -1
+        }
     else:
         voted_out_player = voted_out[0]
         game.execute(voted_out_player)

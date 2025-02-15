@@ -94,6 +94,13 @@ class GameData {
         });
     }
 
+    async cure(action) {
+        return this.fetchData('/cure', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(action)
+        });
+    }
 
     async toggleDayNight() {
         return this.fetchData('/toggle_day_night', { method: 'POST' });

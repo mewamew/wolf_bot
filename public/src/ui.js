@@ -122,8 +122,8 @@ class Ui {
     //显示说话内容
     async speak(title, text) {
         const lines = this.formatText(text);
-        console.log("说话内容：");
-        console.log(lines);
+        //console.log("说话内容：");
+        //console.log(lines);
 
         this.titleTextSpirit.text = title;
         this.titleTextSpirit.visible = true;
@@ -137,8 +137,8 @@ class Ui {
             const start = group * groupSize;
             const end = start + groupSize;
             const currentLines = lines.slice(start, end);
-            console.log("---分组说话：----");
-            console.log(currentLines);
+            //console.log("---分组说话：----");
+            //console.log(currentLines);
 
             this.speakTextSpirit.text = "";
             await this.typeWriterEffect(currentLines.join('\n'), this.speakTextSpirit);

@@ -136,10 +136,11 @@ class WerewolfGame:
             result = self.players[player_idx-1].decide_kill(kill_list)
         else:
             result = self.players[player_idx-1].decide_kill()
-            self.wolf_want_kill[player_idx] = {
-                "kill": result["kill"],
-                "reason": result["reason"]
-            }
+        
+        self.wolf_want_kill[player_idx] = {
+            "kill": result["kill"],
+            "reason": result["reason"]
+        }
         
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
             f.write(f"[狼人{player_idx}号决定杀人]\n")
