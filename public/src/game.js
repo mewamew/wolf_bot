@@ -21,7 +21,7 @@ class DivineAction extends Action {
 
             const response = await this.game.gameData.divine({player_idx: diviner.index});
             await this.game.ui.showPlayer(diviner.index);
-            await this.game.ui.speak(`${diviner.index}号玩家 预言家 思考中：`, response.thinking);
+            await this.game.ui.speak(`${diviner.index}号玩家 思考中`, response.thinking);
         }
         return false;
     }
@@ -47,7 +47,7 @@ class WolfAction extends Action {
                 if (-1 !== response.kill) {
                     killWho = `我决定杀掉【${response.kill}】 号玩家!`;
                 }
-                await this.game.ui.speak(`${wolf.index}号玩家 狼人 思考中：`, response.reason+killWho);
+                await this.game.ui.speak(`${wolf.index}号玩家 思考中：`, response.reason+killWho);
             }
         }
 
@@ -69,7 +69,7 @@ class WolfAction extends Action {
                     if (-1 !== response.kill) {
                         killWho = `我决定杀掉【${response.kill}】 号玩家!`;
                     }
-                    await this.game.ui.speak(`${wolf.index}号玩家 狼人 思考中：`, response.reason+killWho);
+                    await this.game.ui.speak(`${wolf.index}号玩家 思考中：`, response.reason+killWho);
                 }
             }
             /// 获取投票结果
@@ -117,7 +117,7 @@ class WitchAction extends Action {
             if (-1 != result.poison) {
                 poisonWho = `我决定毒杀【${result.poison}】 号玩家！`;
             }
-            await this.game.ui.speak(`${witch.index}号玩家 女巫 思考中：`, result.thinking + cureWho + poisonWho);
+            await this.game.ui.speak(`${witch.index}号玩家 思考中：`, result.thinking + cureWho + poisonWho);
             //根据女巫的决策结果进行操作
             if (1 != result.cure) {
                 //不治疗，玩家死
@@ -146,14 +146,20 @@ class EndNightAction extends Action {
     async do() {
         console.log("=== 天亮了 ===");
         await this.game.gameData.toggleDayNight();
-        //TODO 显示天亮
-        //TODO 显示哪些玩家死亡
+        let death_list = "";
+        for (const death of this.game.deaths) {
+            death_list += `${death}号玩家死亡 \n`
+        }
+        await this.game.ui.showBigText(death_list, 2000);
+        await this.game.ui.showBigText("天亮了", 2000);
         //切换到白天的背景
         await this.game.ui.hidePlayer();
         await this.game.ui.hideSpeak();
         await this.game.ui.showDayBackground();
         //重置投票结果
         await this.game.gameData.resetVoteResult();
+        //重置死亡名单
+        this.game.clear_deaths();
         return false;
     }
 }
@@ -165,14 +171,18 @@ class EndDayAction extends Action {
     async do() {
         console.log("=== 天黑了，请闭眼 ===");
         await this.game.gameData.toggleDayNight();
-        //TODO 显示哪些玩家被处决
-        //TODO 显示天黑了，请闭眼
-        
+        let death_list = "";
+        for (const death of this.game.deaths) {
+            death_list += `${death}号玩家死亡 \n`
+        }
+        await this.game.ui.showBigText(death_list, 2000);
+        await this.game.ui.showBigText("天黑了，请闭眼", 2000);
         await this.game.ui.hidePlayer();
         await this.game.ui.hideSpeak();
         await this.game.ui.hideAllVotes();
         //切换到夜晚的背景
         await this.game.ui.showNightBackground();
+        this.game.clear_deaths();
         return false;
     }
 }
@@ -235,8 +245,6 @@ class ExecuteAction extends Action {
         //处决接口
         const result = await this.game.gameData.execute();
         console.log(result);
-        //TODO 显示处决结果
-
         ///玩家发表遗言
         if (-1 != result.executed_player) {
             await this.game.someone_die(result.executed_player, "被投票处决");
@@ -254,7 +262,7 @@ class CheckWinnerAction extends Action {
         console.log(result);
         
         if (result.winner != "胜负未分") {
-            //TODO 显示胜利者
+            this.game.ui.showBigText(result.winner, -1);
             return true;
         }
         return false;
@@ -267,9 +275,16 @@ class Game {
         this.players = {}
         this.ui = ui;
         this.current_action_index  = 0;
+        this.deaths = []; //死亡名单
     }
+    clear_deaths() {
+        this.deaths = [];
+    }
+
     async someone_die(player_idx, death_reason) {
         console.log(`被杀死的玩家是：${player_idx}`);
+        this.deaths.push(player_idx);
+
         await this.ui.killPlayer(player_idx);
         const result = await this.gameData.getCurrentTime();
         console.log(result);

@@ -1,9 +1,6 @@
 import Game from "./game.js";
 import Ui from "./ui.js";
-
-async function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+import { sleep } from "./utils.js";
 
 // Asynchronous IIFE
 (async () => {
@@ -11,6 +8,9 @@ async function sleep(ms) {
     await ui.setup();
     await ui.preload();
     await ui.loadSprites();
+    await ui.showBigText("游戏开始", 3000);
+
+
     const game = new Game(ui);
     await game.start();
 

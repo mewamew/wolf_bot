@@ -76,7 +76,7 @@ class Ui {
     async loadSprites() {
         this.bg_day = await this.loadSprite('bg_day', 1, false, 0, 0); //背景图
         this.bg_night = await this.loadSprite('bg_night', 1, true, 0, 0); //对话框
-        this.bg_black = await this.loadSprite('bg_black', 101, false, 0, 0); //对话框
+        this.bg_black = await this.loadSprite('bg_black', 1, false, 0, 0); //黑色底图，用来盖住整个游戏画面
         this.chat_box = await this.loadSprite('chat_box', 3, false, 1450, 150); //聊天框
         this.status_bar = await this.loadSprite('status_bar', 3, true, 0, 1710); //状态栏
 
@@ -119,8 +119,23 @@ class Ui {
         }
 
         //加载文字spirit
-        this.speakTextSpirit = this.initTextSpirit(5, 1600, 400, 80, 110, '#ffffff');
-        this.titleTextSpirit = this.initTextSpirit(5, 1600, 200, 90, 90, '#00ffff');
+        this.speakTextSpirit = this.initTextSpirit(5, 1600, 400, 80, 110, '#ffffff', 'left');
+        this.titleTextSpirit = this.initTextSpirit(5, 1600, 200, 90, 90, '#00ffff', 'left');
+
+        this.bg_black2 = await this.loadSprite('bg_black', 101, false, 0, 0); //黑色底图2，用来盖住整个游戏画面
+        this.bigTextSpirit = this.initTextSpirit(102, 1920, 1080, 200, 200, '#ffffff', 'center');
+    }
+
+    async showBigText(text, displayTime) {
+        this.bigTextSpirit.text = text;
+        this.bigTextSpirit.visible = true;
+        this.bg_black2.visible = true;
+        if (displayTime == -1) {
+            return;
+        }
+        await sleep(displayTime);
+        this.bigTextSpirit.visible = false;
+        this.bg_black2.visible = false;
     }
 
     //显示说话内容
@@ -242,7 +257,7 @@ class Ui {
         return { width, height, scale };
     }
 
-    initTextSpirit(zIndex, x, y, fontSize, lineHeight, color) {
+    initTextSpirit(zIndex, x, y, fontSize, lineHeight, color, align = 'left') {
         const textStyle = new PIXI.TextStyle({
             fontFamily: '钉钉进步体',
             fontSize: fontSize*this.bgSize.scale,
@@ -251,6 +266,9 @@ class Ui {
             stroke: { color: '#000000', width: 2*this.bgSize.scale }
         });
         const textSpirit = new PIXI.Text({text:"", style:textStyle});
+        if (align === 'center') {
+            textSpirit.anchor.set(0.5, 0.5);
+        }
         textSpirit.x = x * this.bgSize.scale;
         textSpirit.y = y * this.bgSize.scale;
         textSpirit.zIndex = zIndex;
