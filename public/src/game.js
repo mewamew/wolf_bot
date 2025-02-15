@@ -92,7 +92,7 @@ class WitchAction extends Action {
     async someone_die(player_idx, death_reason) {
         console.log(`被杀死的玩家是：${player_idx}`);
         await this.game.gameData.kill({ player_idx: player_idx });
-
+        await this.game.ui.killPlayer(player_idx);
         const result = await this.game.gameData.getCurrentTime();
         console.log(result);
         if (1 == result.current_day) {
@@ -171,7 +171,9 @@ class EndNightAction extends Action {
         //TODO 显示天亮
         //TODO 显示哪些玩家死亡
         //切换到白天的背景
-        await this.game.ui.showDayBackground()
+        await this.game.ui.hidePlayer();
+        await this.game.ui.hideSpeak();
+        await this.game.ui.showDayBackground();
     }
 }
 

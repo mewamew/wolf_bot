@@ -165,6 +165,12 @@ class Ui {
         this.players[player_index-1].visible = true;
     }
 
+    async hidePlayer() {
+        for (let i = 0; i < this.players.length; i++) {
+            this.players[i].visible = false;
+        }
+    }
+
 
     async showDayBackground() {
         this.bg_day.visible = true;
