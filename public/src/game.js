@@ -99,7 +99,7 @@ class WitchAction extends Action {
             //女巫已经死了
             if (killedPlayer != -1) {
                 await this.game.gameData.kill({ player_idx: killedPlayer });
-                await this.someone_die(killedPlayer, "被狼人杀死");
+                await this.game.someone_die(killedPlayer, "被狼人杀死");
             }
         } else {
             console.log("== 女巫开始行动 ==");
@@ -146,6 +146,7 @@ class EndNightAction extends Action {
     async do() {
         console.log("=== 天亮了 ===");
         await this.game.gameData.toggleDayNight();
+        const result = await this.game.gameData.getCurrentTime();
         let death_list = "";
         for (const death of this.game.deaths) {
             death_list += `${death}号玩家死亡 \n`
@@ -159,6 +160,7 @@ class EndNightAction extends Action {
         await this.game.ui.hidePlayer();
         await this.game.ui.hideSpeak();
         await this.game.ui.showDayBackground();
+        await this.game.ui.showDay(result.current_day);
         //重置投票结果
         await this.game.gameData.resetVoteResult();
         //重置死亡名单

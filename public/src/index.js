@@ -8,8 +8,8 @@ import { sleep } from "./utils.js";
     await ui.setup();
     await ui.preload();
     await ui.loadSprites();
-    await ui.showBigText("游戏开始", 3000);
-
+    await ui.showBigText("游戏开始", 1000);
+    await ui.showBigText("天黑了，请闭眼", 2000);
 
     const game = new Game(ui);
     await game.start();

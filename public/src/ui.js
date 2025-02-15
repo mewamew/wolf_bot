@@ -124,6 +124,14 @@ class Ui {
 
         this.bg_black2 = await this.loadSprite('bg_black', 101, false, 0, 0); //黑色底图2，用来盖住整个游戏画面
         this.bigTextSpirit = this.initTextSpirit(102, 1920, 1080, 200, 200, '#ffffff', 'center');
+        this.dayTextSpirit = this.initTextSpirit(102, 1920, 1080, 700, 700, '#ffffff', 'center');
+    }
+
+    async showDay(day) {
+        this.dayTextSpirit.text = `第${day}天`;
+        this.dayTextSpirit.visible = true;
+        await sleep(3000);
+        this.dayTextSpirit.visible = false;
     }
 
     async showBigText(text, displayTime) {
@@ -199,7 +207,13 @@ class Ui {
         for (let i = 0; i < this.players.length; i++) {
             this.players[i].visible = false;
         }
+        this.players[player_index-1].alpha = 0;
         this.players[player_index-1].visible = true;
+        //渐现
+        for (let i = 0; i < 100; i++) {
+            this.players[player_index-1].alpha += 0.01;
+            await sleep(5);
+        }
     }
 
     async hidePlayer() {
@@ -257,13 +271,13 @@ class Ui {
         return { width, height, scale };
     }
 
-    initTextSpirit(zIndex, x, y, fontSize, lineHeight, color, align = 'left') {
+    initTextSpirit(zIndex, x, y, fontSize, lineHeight, color, align = 'left', strokeEnabled = true) {
         const textStyle = new PIXI.TextStyle({
             fontFamily: '钉钉进步体',
             fontSize: fontSize*this.bgSize.scale,
             fill: color,
             lineHeight: lineHeight*this.bgSize.scale,
-            stroke: { color: '#000000', width: 2*this.bgSize.scale }
+            stroke: strokeEnabled ? { color: '#000000', width: 2*this.bgSize.scale } : undefined
         });
         const textSpirit = new PIXI.Text({text:"", style:textStyle});
         if (align === 'center') {
