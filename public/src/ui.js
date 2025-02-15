@@ -136,7 +136,7 @@ class Ui {
         this.speakTextSpirit.visible = true;
         this.chat_box.visible = true;
 
-        const groupSize = 7;
+        const groupSize = 9;
         for (let group = 0; group < Math.ceil(lines.length / groupSize); group++) {
             const start = group * groupSize;
             const end = start + groupSize;
@@ -282,9 +282,17 @@ class Ui {
         // 按标点符号分割字符串，并在每个标点后添加换行符
         let formattedText = what.replace(/([。！？，,]|\.{3})/g, '$1\n');
         
-        // 合并短行，确保每行不超过24个字
+        // 合并短行，确保每行不超过20个字
         let lines = formattedText.split('\n').filter(line => line.trim());
-        return lines;
+        let result = [];
+        lines.forEach(line => {
+            while (line.length > 24) {
+                result.push(line.substring(0, 20));
+                line = line.substring(20);
+            }
+            result.push(line);
+        });
+        return result;
     }
 
 }
