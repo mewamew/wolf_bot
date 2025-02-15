@@ -272,7 +272,7 @@ class Background {
         this.titleTextSpirit.visible = true;
         const lines = this.formatText(text);
         
-        // 每5行分组显示
+        // 每7行分组显示
         for (let i = 0; i < lines.length; i += 7) {
             const batch = lines.slice(i, i + 7);
             const formattedText = batch.join('\n');

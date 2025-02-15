@@ -117,8 +117,8 @@ class Ui {
 
     //显示说话内容
     async speak(title, text) {
-        const formattedText = this.formatText(text);
-        console.log("说话内容：", formattedText);
+        const lines = this.formatText(text);
+        console.log("说话内容：", lines.join('\n'));
 
         this.titleTextSpirit.text = title;
         this.titleTextSpirit.visible = true;
@@ -126,7 +126,18 @@ class Ui {
         this.speakTextSpirit.text = "";
         this.speakTextSpirit.visible = true;
         this.chat_box.visible = true;
-        await this.typeWriterEffect(formattedText, this.speakTextSpirit);
+
+        // 每7行分组显示
+        for (let i = 0; i < lines.length; i += 7) {
+            const batch = lines.slice(i, Math.min(i + 7, lines.length));
+            if (batch.length === 0) break;  // 防止显示空batch
+            const formattedText = batch.join('\n');
+            await this.typeWriterEffect(formattedText, this.speakTextSpirit);
+            // 如果不是最后一组，才等待
+            if (i + 7 < lines.length) {
+                await sleep(1000); // 每组之间暂停1秒
+            }
+        }
         //停留1秒
         await sleep(1000);
     }
@@ -262,7 +273,7 @@ class Ui {
         
         // 合并短行，确保每行不超过24个字
         let lines = formattedText.split('\n');
-        return lines.join('\n');
+        return lines;
     }
 
 }

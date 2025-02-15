@@ -99,7 +99,6 @@ class GameData {
         return this.fetchData('/toggle_day_night', { method: 'POST' });
     }
 
-    ////////////////////////////////////////////////////
     async speak(action) {
         return this.fetchData('/speak', {
             method: 'POST',
@@ -107,6 +106,9 @@ class GameData {
             body: JSON.stringify(action)
         });
     }
+    
+    ////////////////////////////////////////////////////
+
 
     async resetVoteResult() {
         return this.fetchData('/reset_vote_result', { method: 'POST' });

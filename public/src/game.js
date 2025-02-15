@@ -177,6 +177,36 @@ class EndNightAction extends Action {
     }
 }
 
+class SpeakAction extends Action {
+    constructor(game, player_idx) {
+        super(game);
+        this.player_idx = player_idx;
+    }
+
+    async do() {
+        const playerIndex = this.player_idx - 1;
+        if (!this.game.players || !Array.isArray(this.game.players)) {
+            console.error('Players data is not properly initialized');
+            return;
+        }
+        if (playerIndex < 0 || playerIndex >= this.game.players.length) {
+            console.error(`Invalid player index: ${this.player_idx}`);
+            return;
+        }
+        if (!this.game.players[playerIndex]) {
+            console.error(`Player at index ${playerIndex} is undefined`);
+            return;
+        }
+        if (this.game.players[playerIndex].is_alive) {
+            const result = await this.game.gameData.speak({ player_idx: this.player_idx });
+            console.log(result);
+            await this.game.ui.showPlayer(this.player_idx);
+            await this.game.ui.speak(`${this.player_idx}号玩家 思考中：`, result.thinking);
+            await this.game.ui.speak(`${this.player_idx}号玩家 发言：`, result.speak);
+        }
+    }
+}
+
 class Game {
     constructor(ui) {
         this.gameData = new GameData();
@@ -191,14 +221,21 @@ class Game {
         const result = await this.gameData.startGame();
         console.log(result.message);
         
+        ///获取玩家列表
+        const playersData = await this.gameData.getStatus();
+        this.players = Object.values(playersData);
+        console.log(this.players);
+
         ///按顺序设置行动类
         this.actions = []
         this.actions.push(new DivineAction(this));
         this.actions.push(new WolfAction(this));
         this.actions.push(new WitchAction(this));
         this.actions.push(new EndNightAction(this));
+        for (const player of this.players) {
+            this.actions.push(new SpeakAction(this, player.index));
+        }
     }
-
 
     async run() {
         //更新玩家状态

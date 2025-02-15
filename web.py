@@ -95,12 +95,32 @@ def attack(action: AttackAction):
         "attacked_player": action.target_idx
     }
 
-##########################################
+@app.post("/toggle_day_night")
+def toggle_day_night():
+    game.toggle_day_night()
+    return {"message": "Day/Night toggled"}
+
+
+
+@app.post("/decide_cure_or_poison")
+def decide_cure_or_poison(action: DecideCureOrPoisonAction):
+    result = game.decide_cure_or_poison(action.player_idx)
+    return result
+
+
+@app.post("/poison")
+def poison(action: PoisonAction):
+    game.poison(action.player_idx)
+    return {"message": f"玩家 {action.player_idx} 被毒死"}
+
+
 @app.post("/speak")
 def speak(action: PlayerAction):
     result = game.speak(action.player_idx)
     return result
 
+
+##########################################
 @app.post("/vote")
 def vote(action: PlayerAction):
     result = game.vote(action.player_idx)
@@ -141,26 +161,6 @@ def check_winner():
     result = game.check_winner()
     return {"winner": result}
 
-@app.post("/toggle_day_night")
-def toggle_day_night():
-    game.toggle_day_night()
-    return {"message": "Day/Night toggled"}
-
-
-
-
-
-
-@app.post("/decide_cure_or_poison")
-def decide_cure_or_poison(action: DecideCureOrPoisonAction):
-    result = game.decide_cure_or_poison(action.player_idx)
-    return result
-
-
-@app.post("/poison")
-def poison(action: PoisonAction):
-    game.poison(action.player_idx)
-    return {"message": f"玩家 {action.player_idx} 被毒死"}
 
 
 
