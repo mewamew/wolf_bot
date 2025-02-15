@@ -23,6 +23,7 @@ class DivineAction extends Action {
             await this.game.ui.showPlayer(diviner.index);
             await this.game.ui.speak(`${diviner.index}号玩家 预言家 思考中：`, response.thinking);
         }
+        return false;
     }
 }
 
@@ -81,6 +82,7 @@ class WolfAction extends Action {
                 console.log("投票无效，今晚狼人不杀人");
             }
         }
+        return false;
     }
 }
 
@@ -131,6 +133,7 @@ class WitchAction extends Action {
                 await this.game.someone_die(result.poison, "被女巫毒杀");
             }
         }
+        return false;
     }
 }
 
@@ -149,6 +152,26 @@ class EndNightAction extends Action {
         await this.game.ui.showDayBackground();
         //重置投票结果
         await this.game.gameData.resetVoteResult();
+        return false;
+    }
+}
+
+class EndDayAction extends Action {
+    constructor(game) {
+        super(game);
+    }
+    async do() {
+        console.log("=== 天黑了，请闭眼 ===");
+        await this.game.gameData.toggleDayNight();
+        //TODO 显示哪些玩家被处决
+        //TODO 显示天黑了，请闭眼
+        
+        await this.game.ui.hidePlayer();
+        await this.game.ui.hideSpeak();
+        await this.game.ui.hideAllVotes();
+        //切换到夜晚的背景
+        await this.game.ui.showNightBackground();
+        return false;
     }
 }
 
@@ -166,6 +189,7 @@ class SpeakAction extends Action {
             await this.game.ui.speak(`${this.player_idx}号玩家 思考中：`, result.thinking);
             await this.game.ui.speak(`${this.player_idx}号玩家 发言：`, result.speak);
         }
+        return false;
     }
 }
 
@@ -196,6 +220,7 @@ class VoteAction extends Action {
                 await this.game.ui.showVote(player_idx, votes);
             }
         }
+        return false;
     }
 }
 
@@ -223,7 +248,14 @@ class CheckWinnerAction extends Action {
     }
 
     async do() {
-        //检查胜利
+        const result = await this.game.gameData.checkWinner();
+        console.log(result);
+        
+        if (result.winner != "胜负未分") {
+            //TODO 显示胜利者
+            return true;
+        }
+        return false;
     }
 }
 
@@ -239,7 +271,7 @@ class Game {
         await this.ui.killPlayer(player_idx);
         const result = await this.gameData.getCurrentTime();
         console.log(result);
-        if (1 == result.current_day || result.current_phase == "夜晚") {
+        if (1 == result.current_day || result.current_phase == "白天") {
             //如果是第一夜，允许发表遗言
             const result = await this.gameData.lastWords({ player_idx: player_idx, death_reason: death_reason });
             console.log(result);
@@ -275,6 +307,7 @@ class Game {
         this.actions.push(new DivineAction(this));
         this.actions.push(new WolfAction(this));
         this.actions.push(new WitchAction(this));
+        this.actions.push(new CheckWinnerAction(this));//检查胜利
         this.actions.push(new EndNightAction(this));
         for (const player of this.players) {
             this.actions.push(new SpeakAction(this, player.index));
@@ -285,6 +318,8 @@ class Game {
 
         ///白天最后一个环节是处决投票
         this.actions.push(new ExecuteAction(this));
+        this.actions.push(new CheckWinnerAction(this));//检查胜利
+        this.actions.push(new EndDayAction(this));
     }
 
     async run() {
@@ -292,13 +327,9 @@ class Game {
         const playersData = await this.gameData.getStatus();
         this.players = Object.values(playersData);
         
-        if (this.current_action_index < this.actions.length) {
-            const action = this.actions[this.current_action_index++];
-            await action.do();
-        } else {
-            console.log("没事干了")
-        }
-        await sleep(1000);
+        const action = this.actions[this.current_action_index++];
+        this.current_action_index = this.current_action_index % this.actions.length;
+        return await action.do();
     }
 
     get_diviner() {

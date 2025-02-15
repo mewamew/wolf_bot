@@ -130,7 +130,6 @@ class GameData {
         });
     }
 
-    ////////////////////////////////////////////////////
     async checkWinner() {
         return this.fetchData('/check_winner');
     }

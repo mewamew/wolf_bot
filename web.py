@@ -153,16 +153,10 @@ def execute():
             "executed_player": voted_out_player
         }
 
-##########################################
-
-
-        
-
 @app.get("/check_winner")
 def check_winner():
     result = game.check_winner()
     return {"winner": result}
-
 
 
 
