@@ -108,7 +108,7 @@ class WitchAction extends Action {
             await this.game.ui.showPlayer(witch.index);
             let cureWho = "我决定今晚不治疗！"
             if (1 == result.cure) {
-                cureWho = `我决定治疗玩家！`;
+                cureWho = `我决定治疗【${killedPlayer}】号玩家！`;
                 const result = await this.game.gameData.cure({ player_idx: killedPlayer });
                 console.log(result);
             }
@@ -150,6 +150,9 @@ class EndNightAction extends Action {
         for (const death of this.game.deaths) {
             death_list += `${death}号玩家死亡 \n`
         }
+        if(death_list == "") {
+            death_list = "今晚是平安夜"
+        }
         await this.game.ui.showBigText(death_list, 2000);
         await this.game.ui.showBigText("天亮了", 2000);
         //切换到白天的背景
@@ -174,6 +177,9 @@ class EndDayAction extends Action {
         let death_list = "";
         for (const death of this.game.deaths) {
             death_list += `${death}号玩家死亡 \n`
+        }
+        if(death_list == "") {
+            death_list = "无人被处决"
         }
         await this.game.ui.showBigText(death_list, 2000);
         await this.game.ui.showBigText("天黑了，请闭眼", 2000);

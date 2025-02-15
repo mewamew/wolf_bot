@@ -267,4 +267,6 @@ class WerewolfGame:
             return '狼人胜利'
         if werewolf_count == 0:
             return '村民胜利'
+        if villager_count > werewolf_count:
+            return '胜负未分'
         return self.judge.decide()
