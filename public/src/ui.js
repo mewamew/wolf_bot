@@ -3,6 +3,8 @@ import { sleep } from "./utils.js";
 class Ui {
     constructor() {
         this.app = new PIXI.Application();
+        this.currentBg = null; // 新增属性，用于保存当前背景状态
+        this.bg = null; // 新增属性，用于保存背景精灵
     }
 
     async preload()
@@ -174,7 +176,7 @@ class Ui {
     }
 
     //显示说话内容
-    async speak(title, text) {
+    async speak(title, text, is_dark_bg=false) {
         const lines = this.formatText(text);
         //console.log("说话内容：");
         //console.log(lines);
@@ -185,6 +187,13 @@ class Ui {
         this.speakTextSpirit.text = "";
         this.speakTextSpirit.visible = true;
         this.chat_box.visible = true;
+        
+        // 保存当前背景状态
+        const prevBg = this.currentBg;
+        
+        if (is_dark_bg) {
+            this.showDarkBackground();
+        }
 
         const groupSize = 9;
         for (let group = 0; group < Math.ceil(lines.length / groupSize); group++) {
@@ -198,6 +207,15 @@ class Ui {
             await this.typeWriterEffect(currentLines.join('\n'), this.speakTextSpirit);
             await sleep(1000);
         }
+
+        // 恢复背景
+        if (prevBg === 'day') {
+            this.showDayBackground();
+        } else if (prevBg === 'night') {
+            this.showNightBackground();
+        }
+
+        ///TODO恢复之前的背景（可能是白天或者黑夜的背景）
 
         //停留1秒
         await sleep(1000);
@@ -254,16 +272,24 @@ class Ui {
         this.bg_day.visible = true;
         this.bg_night.visible = false;
         this.bg_black.visible = false;
+        this.bg.tint = 0xFFFFFF; // 恢复白天背景色
+        this.currentBg = 'day';
     }
+
     async showNightBackground() {
         this.bg_day.visible = false;
         this.bg_night.visible = true;
         this.bg_black.visible = false;
+        this.bg.tint = 0x666666; // 暗色背景
+        this.currentBg = 'night';
     }
-    async showBlackBackground() {
+
+    async showDarkBackground() {
         this.bg_day.visible = false;
         this.bg_night.visible = false;
         this.bg_black.visible = true;
+        this.bg.tint = 0x333333; // 更暗的对话背景
+        this.currentBg = 'dark';
     }
 
     async loadSprite(sprite_name, zIndex, visible, x, y, scale=1.0) {
@@ -276,6 +302,9 @@ class Ui {
         sprite.x = x * this.bgSize.scale;
         sprite.y = y * this.bgSize.scale;
         this.app.stage.addChild(sprite);
+        if (sprite_name === 'bg_day') {
+            this.bg = sprite;
+        }
         return sprite;
     }
 

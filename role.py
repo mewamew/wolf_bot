@@ -67,9 +67,10 @@ class BaseRole:
                 if reason:
                     log_file.write(f"---推理过程---:\n{reason}\n")
 
+            # 2025年02月16日 R1的推理实在太长受不了了，直接忽略
             #存在推理过程，用推理过程替代thinking
-            if 'thinking' in resp and reason:
-                resp['thinking'] = reason
+            #if 'thinking' in resp and reason:
+            #    resp['thinking'] = reason
             return resp
 
     def speak(self, extra_data=None ):

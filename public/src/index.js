@@ -12,7 +12,11 @@ import { sleep } from "./utils.js";
     await ui.showBigText("天黑了，请闭眼", 2000);
 
     //如果不想显示角色名称，可以传 false
-    const game = new Game(ui, true);
+    const game = new Game(
+        ui, 
+        true, //是否显示角色名称
+        true //是否显示推理过程
+    );
     await game.start();
 
     let is_end = false;
