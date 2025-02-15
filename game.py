@@ -84,6 +84,7 @@ class WerewolfGame:
         self.history.toggle_day_night()
         if self.current_phase == "白天":
             self.current_phase = "夜晚"
+
             with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
                 f.write(f"=== 第{self.current_day}天夜晚 ===\n")
         else:
@@ -159,6 +160,7 @@ class WerewolfGame:
                     vote_count[target] = 1
         
         if not vote_count:  # 如果没有有效投票
+            print("没有有效投票")
             return -1
         
         # 找出最高票数
@@ -170,6 +172,9 @@ class WerewolfGame:
         # 如果只有一个人得票最高，处决该玩家
         if len(candidates) == 1:
             return candidates[0]
+
+        print("多人投票一致")
+        print(candidates)
         return -1
     
     def kill(self, player_idx):
@@ -181,8 +186,10 @@ class WerewolfGame:
         print("[狼人杀人] {}号玩家被狼人杀死".format(player_idx))
         self.players[player_idx-1].be_killed()
         
-    def decide_cure_or_poison(self, player_idx, someone_will_be_killed):
-        return self.players[player_idx-1].decide_cure_or_poison(someone_will_be_killed)
+    def decide_cure_or_poison(self, player_idx):
+        someone_will_be_killed = self.get_wolf_want_kill()
+        result = self.players[player_idx-1].decide_cure_or_poison(someone_will_be_killed)
+        return result
     
     def poison(self, player_idx):
         self.players[player_idx-1].be_poisoned()

@@ -8,7 +8,7 @@ app = FastAPI()
 game = WerewolfGame()
 
 class PlayerAction(BaseModel):
-    player_idx: int
+    player_idx:int
 
 class LastWordsAction(BaseModel):
     player_idx: int
@@ -22,13 +22,9 @@ class DecideKillAction(BaseModel):
     player_idx: int
     is_second_vote: bool
     
-class CureAction(BaseModel):
+class DecideCureOrPoisonAction(BaseModel):
     player_idx: int
-    someone_will_be_killed: int
 
-class DecidePoisonAction(BaseModel):
-    player_idx: int
-    someone_will_be_killed: int
 
 class PoisonAction(BaseModel):
     player_idx: int
@@ -72,8 +68,11 @@ def decide_kill(action: DecideKillAction):
     result = game.decide_kill(action.player_idx, action.is_second_vote)
     return result
 
-##########################################
-
+@app.post("/kill")
+def kill(action: PlayerAction):
+    game.kill(action.player_idx)
+    return {"message": f"玩家 {action.player_idx} 被杀死"}
+    
 @app.get("/current_time")
 def get_current_time():
     return {
@@ -81,6 +80,22 @@ def get_current_time():
         "current_phase": game.current_phase
     }
 
+@app.post("/last_words")
+def last_words(action: LastWordsAction):
+    result = game.last_words(action.player_idx, action.death_reason)
+    return result
+
+
+@app.post("/attack")
+def attack(action: AttackAction):
+    result = game.attack(action.target_idx)
+    players = game.get_players()
+    return {
+        "message": f"{players[action.player_idx]['name']} 攻击了 {players[action.target_idx]['name']}",
+        "attacked_player": action.target_idx
+    }
+
+##########################################
 @app.post("/speak")
 def speak(action: PlayerAction):
     result = game.speak(action.player_idx)
@@ -120,19 +135,6 @@ def execute():
             "executed_player": voted_out_player
         }
         
-@app.post("/last_words")
-def last_words(action: LastWordsAction):
-    result = game.last_words(action.player_idx, action.death_reason)
-    return result
-
-@app.post("/attack")
-def attack(action: AttackAction):
-    result = game.attack(action.target_idx)
-    players = game.get_players()
-    return {
-        "message": f"{players[action.player_idx]['name']} 攻击了 {players[action.target_idx]['name']}",
-        "attacked_player": action.target_idx
-    }
 
 @app.get("/check_winner")
 def check_winner():
@@ -149,25 +151,18 @@ def toggle_day_night():
 
 
 
-@app.post("/cure")
-def cure(action: CureAction):
-    result = game.cure(action.player_idx, action.someone_will_be_killed)
+@app.post("/decide_cure_or_poison")
+def decide_cure_or_poison(action: DecideCureOrPoisonAction):
+    result = game.decide_cure_or_poison(action.player_idx)
     return result
 
-@app.post("/decide_poison")
-def decide_poison(action: DecidePoisonAction):
-    result = game.decide_poison(action.player_idx, action.someone_will_be_killed)
-    return result
 
 @app.post("/poison")
 def poison(action: PoisonAction):
     game.poison(action.player_idx)
     return {"message": f"玩家 {action.player_idx} 被毒死"}
 
-@app.post("/kill")
-def kill(action: PlayerAction):
-    game.kill(action.player_idx)
-    return {"message": f"玩家 {action.player_idx} 被杀死"}
+
 
 
 if __name__ == "__main__":

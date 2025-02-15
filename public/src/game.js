@@ -93,8 +93,50 @@ class WitchAction extends Action {
         const witch = this.game.get_witch();
         if (witch.is_alive) {
             console.log("== 女巫开始行动 ==");
-            const response = await this.game.gameData.decideCure({ player_idx: witch.index });
-            console.log(response);
+            const result = await this.game.gameData.decideCureOrPoison({ player_idx: witch.index });
+            console.log(result);
+            await this.game.ui.showPlayer(witch.index);
+            let cureWho = "我决定今晚不治疗！"
+            if (1 == result.cure) {
+                cureWho = `我决定治疗玩家！`;
+            }
+
+            let poisonWho = "我决定今晚不毒杀！"
+            if (-1 != result.poison) {
+                poisonWho = `我决定毒杀【${result.poison}】 号玩家！`;
+            }
+            await this.game.ui.speak(`${witch.index}号玩家 女巫 思考中：`, result.thinking + cureWho + poisonWho);
+            //根据女巫的决策结果进行操作
+            if (1 != result.cure) {
+                //不治疗，玩家死
+                const result = await this.game.gameData.getWolfWantKill();
+                if (killedPlayer != -1) {
+                    console.log(`被杀死的玩家是：${killedPlayer}`);
+                    await this.game.gameData.kill({ player_idx: killedPlayer });
+
+                    const result = await this.game.gameData.getCurrentTime();
+                    console.log(result);
+                    if (1 == result.current_day) {
+                        //如果是第一夜，允许发表遗言
+                        const result = await this.game.gameData.lastWords({ player_idx: killedPlayer, death_reason: "被狼人杀死" });
+                        console.log(result);
+                        await this.game.ui.showPlayer(killedPlayer);
+                        await this.game.ui.speak(`${killedPlayer}号玩家思考中：`, result.thinking);
+                        await this.game.ui.speak(`${killedPlayer}号玩家发言：`, result.speak);
+
+                        //如果是猎人，允许反击
+                        const  hunter = this.game.get_hunter();
+                        if (hunter.index == killedPlayer) {
+                            if (result.attack !== undefined && result.attack !== -1) {
+                                await this.game.gameData.attack({ player_idx: killedPlayer, target_idx: result.attack });
+                                console.log(`猎人发动反击，杀死了：${killedPlayer}号玩家`);
+                            } else {
+                                console.log(`猎人决定不反击`);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -117,7 +159,7 @@ class Game {
         this.actions = []
         this.actions.push(new DivineAction(this));
         this.actions.push(new WolfAction(this));
-        //this.actions.push(new WitchAction(this));
+        this.actions.push(new WitchAction(this));
     }
 
 
@@ -146,6 +188,10 @@ class Game {
 
     get_witch() {
         return this.players.find(player => player.role_type === "女巫");
+    }
+
+    get_hunter() {
+        return this.players.find(player => player.role_type === "猎人");
     }
 }
 

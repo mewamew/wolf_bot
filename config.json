@@ -1,5 +1,5 @@
 {
-    "randomize_roles": true,
+    "randomize_roles": false,
     "players": [
         {
             "model_name": "qwen-max-2025-01-25",

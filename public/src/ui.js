@@ -1,3 +1,5 @@
+import { sleep } from "./utils.js";
+
 class Ui {
     constructor() {
         this.app = new PIXI.Application();
@@ -124,7 +126,9 @@ class Ui {
         this.speakTextSpirit.text = "";
         this.speakTextSpirit.visible = true;
         this.chat_box.visible = true;
-        await this.typeWriterEffect(formattedText, this.speakTextSpirit);        
+        await this.typeWriterEffect(formattedText, this.speakTextSpirit);
+        //停留1秒
+        await sleep(1000);
     }
 
     async hideSpeak() {

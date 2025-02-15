@@ -46,13 +46,47 @@ class GameData {
         return this.fetchData('/get_wolf_want_kill');
     }
 
-    ////////////////////////////////////////////////////
+    async decideCureOrPoison(action) {
+        return this.fetchData('/decide_cure_or_poison', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(action)
+        });
+    }
+
+    async kill(action) {
+        return this.fetchData('/kill', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(action)
+        });
+    }
+
     async getCurrentTime() {
         const response = await fetch('/current_time');
         return await response.json();
     }
 
+    async lastWords(action) {
+        return this.fetchData('/last_words', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                player_idx: action.player_idx,
+                death_reason: action.death_reason
+            })
+        });
+    }
 
+    async attack(action) {
+        return this.fetchData('/attack', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(action)
+        });
+    }
+
+    ////////////////////////////////////////////////////
     async speak(action) {
         return this.fetchData('/speak', {
             method: 'POST',
@@ -86,25 +120,7 @@ class GameData {
         });
     }
     
-    async lastWords(action) {
-        return this.fetchData('/last_words', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                player_idx: action.player_idx,
-                death_reason: action.death_reason
-            })
-        });
-    }
-
-    async attack(action) {
-        return this.fetchData('/attack', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(action)
-        });
-    }
-
+    
     async toggleDayNight() {
         return this.fetchData('/toggle_day_night', { method: 'POST' });
     }
@@ -115,33 +131,8 @@ class GameData {
 
     
 
-
-    async cure(action) {
-        return this.fetchData('/cure', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(action)
-        });
-    }
-
-    async decidePoison(action) {
-        return this.fetchData('/decide_poison', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(action)
-        });
-    }
-
     async poison(action) {
         return this.fetchData('/poison', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(action)
-        });
-    }
-
-    async kill(action) {
-        return this.fetchData('/kill', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(action)
