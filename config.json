@@ -2,8 +2,8 @@
     "randomize_roles": false,
     "players": [
         {
-            "model_name": "qwen-max-2025-01-25",
-            "api_key": "sk-62081a7ee50143b298f2a92127867985",
+            "model_name": "Pro/deepseek-ai/DeepSeek-R1",
+            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih",
             "role": "狼人"
         },
         {
@@ -17,9 +17,9 @@
             "role": "村民"
         },
         {
-            "model_name": "qwen-max-2025-01-25",
-            "api_key": "sk-62081a7ee50143b298f2a92127867985",
-            "role": "村民"
+            "model_name": "Pro/deepseek-ai/DeepSeek-R1",
+            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih",
+            "role": "狼人"
         },
         {
             "model_name": "qwen-max-2025-01-25",
@@ -39,11 +39,11 @@
         {
             "model_name": "qwen-max-2025-01-25",
             "api_key": "sk-62081a7ee50143b298f2a92127867985",
-            "role": "狼人"
+            "role": "村民"
         },
         {
-            "model_name": "qwen-max-2025-01-25",
-            "api_key": "sk-62081a7ee50143b298f2a92127867985",
+            "model_name": "Pro/deepseek-ai/DeepSeek-R1",
+            "api_key": "sk-xvfyfadzvhixthbpnrcmfzkmnbiehvwshhryvidumxgiseih",
             "role": "狼人"
         }
     ],
