@@ -55,6 +55,16 @@ class Ui {
             { alias: 'player_9_small', src: 'assets/player_9_small.png' },
             //墓碑
             { alias: 'death', src: 'assets/death.png' },
+
+            //模型logo
+            { alias: 'logo_deepseek', src: 'assets/logo_deepseek.png' },
+            { alias: 'logo_gpt', src: 'assets/logo_gpt.png' },
+            { alias: 'logo_qwen', src: 'assets/logo_qwen.png' },
+            { alias: 'logo_kimi', src: 'assets/logo_kimi.png' },
+            { alias: 'logo_gemini', src: 'assets/logo_gemini.png' },
+            { alias: 'logo_glm', src: 'assets/logo_glm.png' },
+            { alias: 'logo_baichuan', src: 'assets/logo_baichuan.png' }
+
         ];
         await PIXI.Assets.load(assets);
     }
@@ -65,7 +75,7 @@ class Ui {
         console.log("初始化： 背景宽=", this.bgSize.width, "背景高=", this.bgSize.height)
         await this.app.init({ 
             resolution: window.devicePixelRatio || 1,  // 设置分辨率
-    autoDensity: true,  // 自动调整密度
+            autoDensity: true,  // 自动调整密度
             background: '#F00000',
             width: this.bgSize.width,
             height: this.bgSize.height
@@ -112,10 +122,23 @@ class Ui {
             this.players_vote.push(votes);
         }
 
+        //加载模型logo
+        this.player_model_logos= [];
+        for (let i = 1; i <= 9; i++) {
+            let logo_map = {};
+            logo_map["deepseek"] = await this.loadSprite(`logo_deepseek`, 6, false, 240+(i-1) * 420, 2020, 0.5);
+            logo_map["gpt"] = await this.loadSprite(`logo_gpt`, 6, false, 240+(i-1) * 420, 2020, 0.5);
+            logo_map["qwen"] = await this.loadSprite(`logo_qwen`, 6, false, 240+(i-1) * 420, 2020, 0.5);
+            logo_map["kimi"] = await this.loadSprite(`logo_kimi`, 6, false, 240+(i-1) * 420, 2020, 0.5);
+            logo_map["gemini"] = await this.loadSprite(`logo_gemini`, 6, false, 240+(i-1) * 420, 2020, 0.5);
+            logo_map["glm"] = await this.loadSprite(`logo_glm`, 6, false, 240+(i-1) * 420, 2020, 0.5);
+            logo_map["baichuan"] = await this.loadSprite(`logo_baichuan`, 6, false, 240+(i-1) * 420, 2020, 0.5);
+            this.player_model_logos.push(logo_map);
+        }
         //加载玩家编号
         this.players_number = [];
         for (let i = 1; i <= 9; i++) {
-            this.players_number.push(await this.loadSprite(`n${i}`, 6, true, 200+(i-1) * 420, 2010));
+            this.players_number.push(await this.loadSprite(`n${i}`, 7, true, 100+(i-1) * 420, 2010));
         }
 
         //加载文字spirit
@@ -125,6 +148,10 @@ class Ui {
         this.bg_black2 = await this.loadSprite('bg_black', 101, false, 0, 0); //黑色底图2，用来盖住整个游戏画面
         this.bigTextSpirit = this.initTextSpirit(102, 1920, 1080, 200, 200, '#ffffff', 'center');
         this.dayTextSpirit = this.initTextSpirit(102, 1920, 1080, 700, 700, '#ffffff', 'center');
+    }
+
+    async showModelLogo(player_index, model_name) {
+        this.player_model_logos[player_index-1][model_name].visible = true;
     }
 
     async showDay(day) {

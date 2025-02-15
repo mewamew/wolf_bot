@@ -327,6 +327,24 @@ class Game {
         this.players = Object.values(playersData);
         console.log(this.players);
 
+        ///设置模型logo
+        const model_name = {
+            "o3-mini": "gpt",
+            "o3-mini-2025-01-31": "gpt",
+            "deepseek-ai/DeepSeek-R1": "deepseek",
+            "Pro/deepseek-ai/DeepSeek-R1": "deepseek",
+            "gemini-2.0-flash-thinking-exp-01-21": "gemini",
+            "qwen-max-2025-01-25":"qwen",
+            "moonshot-v1-32k":"kimi",
+            "glm-4-plus":"glm",
+            "Baichuan4":"baichuan"
+        };
+        for (const player of this.players) {
+            if (player.model in model_name) {
+                this.ui.showModelLogo(player.index, model_name[player.model]);
+            }
+        }
+
         ///按顺序设置行动类
         this.actions = []
         this.actions.push(new DivineAction(this));
