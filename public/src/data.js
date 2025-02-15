@@ -123,18 +123,14 @@ class GameData {
         return this.fetchData('/get_vote_result');
     }
 
-
-    ////////////////////////////////////////////////////
-
-
     async execute() {
         return this.fetchData('/execute', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
     }
-    
 
+    ////////////////////////////////////////////////////
     async checkWinner() {
         return this.fetchData('/check_winner');
     }

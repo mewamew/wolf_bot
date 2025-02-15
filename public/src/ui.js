@@ -19,6 +19,10 @@ class Ui {
             { alias: '3', src: 'assets/3.png' },
             { alias: '4', src: 'assets/4.png' },
             { alias: '5', src: 'assets/5.png' },
+            { alias: '6', src: 'assets/6.png' },
+            { alias: '7', src: 'assets/7.png' },
+            { alias: '8', src: 'assets/8.png' },
+            { alias: '9', src: 'assets/9.png' },
             //玩家编号
             { alias: 'n1', src: 'assets/n1.png' },
             { alias: 'n2', src: 'assets/n2.png' },
@@ -98,7 +102,7 @@ class Ui {
         this.players_vote = [];
         for (let i = 1; i <= 9; i++) {
             let votes = [];
-            for (let j = 1; j <= 5; j++) {
+            for (let j = 1; j <= 9; j++) {
                 votes.push(await this.loadSprite(`${j}`, 4, false, 100+(i-1) * 420, 1600, 0.9));
             }
             this.players_vote.push(votes);

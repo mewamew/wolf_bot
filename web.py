@@ -135,8 +135,6 @@ def get_vote_result():
     result = game.get_vote_result()
     return {"vote_result": result}
 
-##########################################
-
 @app.post("/execute")
 def execute():
     players = game.get_players()
@@ -154,6 +152,10 @@ def execute():
             "message": f"{players[voted_out_player]['name']} 被处决!",
             "executed_player": voted_out_player
         }
+
+##########################################
+
+
         
 
 @app.get("/check_winner")
