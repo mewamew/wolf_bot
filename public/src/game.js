@@ -18,10 +18,10 @@ class DivineAction extends Action {
         const diviner = this.game.get_diviner();
         if (diviner.is_alive) {
             console.log("== 预言家开始预言 ==");
-            const role = this.game.show_role ? diviner.role : "玩家";
+            const role = this.game.show_role ? diviner.role_type : "玩家";
             const response = await this.game.gameData.divine({player_idx: diviner.index});
             await this.game.ui.showPlayer(diviner.index);
-            await this.game.ui.speak(`${diviner.index}号 ${role} 思考中`, response.thinking);
+            await this.game.ui.speak(`${diviner.index}号 ${role_type} 思考中`, response.thinking);
         }
         return false;
     }
@@ -47,7 +47,7 @@ class WolfAction extends Action {
                 if (-1 !== response.kill) {
                     killWho = `我决定杀掉【${response.kill}】 号玩家!`;
                 }
-                const role = this.game.show_role ? wolf.role : "玩家";
+                const role = this.game.show_role ? wolf.role_type : "玩家";
                 await this.game.ui.speak(`${wolf.index}号 ${role} 思考中：`, response.reason+killWho);
             }
         }
@@ -70,7 +70,7 @@ class WolfAction extends Action {
                     if (-1 !== response.kill) {
                         killWho = `我决定杀掉【${response.kill}】 号玩家!`;
                     }
-                    const role = this.game.show_role ? wolf.role : "玩家";
+                    const role = this.game.show_role ? wolf.role_type : "玩家";
                     await this.game.ui.speak(`${wolf.index}号 ${role} 思考中：`, response.reason+killWho);
                 }
             }
@@ -119,7 +119,7 @@ class WitchAction extends Action {
             if (-1 != result.poison) {
                 poisonWho = `我决定毒杀【${result.poison}】 号玩家！`;
             }
-            const role = this.game.show_role ? witch.role : "玩家";
+            const role = this.game.show_role ? witch.role_type : "玩家";
             await this.game.ui.speak(`${witch.index}号 ${role} 思考中：`, result.thinking + cureWho + poisonWho);
             //根据女巫的决策结果进行操作
             if (1 != result.cure) {
@@ -208,7 +208,7 @@ class SpeakAction extends Action {
         if (this.game.players[this.player_idx - 1].is_alive) {
             const result = await this.game.gameData.speak({ player_idx: this.player_idx });
             console.log(result);
-            const role = this.game.show_role ? this.game.players[this.player_idx - 1].role : "玩家";
+            const role = this.game.show_role ? this.game.players[this.player_idx - 1].role_type : "玩家";
             await this.game.ui.showPlayer(this.player_idx);
             await this.game.ui.speak(`${this.player_idx}号 ${role} 思考中：`, result.thinking);
             await this.game.ui.speak(`${this.player_idx}号 ${role} 发言：`, result.speak);
@@ -227,7 +227,7 @@ class VoteAction extends Action {
         if (this.game.players[this.player_idx - 1].is_alive) {
             const result = await this.game.gameData.vote({ player_idx: this.player_idx });
             console.log(result);
-            const role = this.game.show_role ? this.game.players[this.player_idx - 1].role : "玩家";
+            const role = this.game.show_role ? this.game.players[this.player_idx - 1].role_type : "玩家";
             await this.game.ui.showPlayer(this.player_idx);
             await this.game.ui.speak(`${this.player_idx}号 ${role} 思考中：`, result.thinking);
             const vote_id = result.vote;
@@ -307,7 +307,7 @@ class Game {
             const result = await this.gameData.lastWords({ player_idx: player_idx, death_reason: death_reason });
             console.log(result);
             await this.ui.showPlayer(player_idx);
-            const role = this.show_role ? this.players[player_idx - 1].role : "玩家";
+            const role = this.show_role ? this.players[player_idx - 1].role_type : "玩家";
             await this.ui.speak(`${player_idx}号 ${role} 思考中：`, result.thinking);
             await this.ui.speak(`${player_idx}号 ${role} 发言：`, result.speak);
 
