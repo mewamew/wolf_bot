@@ -21,7 +21,7 @@ class DivineAction extends Action {
             const role = this.game.show_role ? diviner.role_type : "玩家";
             const response = await this.game.gameData.divine({player_idx: diviner.index});
             await this.game.ui.showPlayer(diviner.index);
-            await this.game.ui.speak(`${diviner.index}号 ${role_type} 思考中`, response.thinking);
+            await this.game.ui.speak(`${diviner.index}号 ${role} 思考中`, response.thinking);
         }
         return false;
     }
