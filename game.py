@@ -261,4 +261,10 @@ class WerewolfGame:
     
     
     def check_winner(self) -> str:
+        werewolf_count = sum(1 for player in self.players if player.role_type == '狼人')
+        villager_count = len(self.players) - werewolf_count
+        if werewolf_count > villager_count:
+            return '狼人胜利'
+        if werewolf_count == 0:
+            return '村民胜利'
         return self.judge.decide()
