@@ -80,16 +80,20 @@ class Ui {
         this.chat_box = await this.loadSprite('chat_box', 3, false, 1450, 150); //聊天框
         this.status_bar = await this.loadSprite('status_bar', 3, true, 0, 1710); //状态栏
 
-        //加载玩家大头像
+        // 生成并随机打乱1到9的数组
+        const playerIndices = Array.from({ length: 9 }, (_, i) => i + 1);
+        playerIndices.sort(() => Math.random() - 0.5);
+
+        // 加载玩家大头像
         this.players = [];
-        for (let i = 1; i <= 9; i++) {
+        for (const i of playerIndices) {
             this.players.push(await this.loadSprite(`player_${i}`, 2, false, 0, 0));
         }
 
-        //加载玩家小头像
+        // 加载玩家小头像
         this.players_small = [];
-        for (let i = 1; i <= 9; i++) {
-            this.players_small.push(await this.loadSprite(`player_${i}_small`, 4, true, 100+(i-1)*420, 1800, 0.7));
+        for (const i of playerIndices) {
+            this.players_small.push(await this.loadSprite(`player_${i}_small`, 4, true, 100+(playerIndices.indexOf(i))*420, 1800, 0.7));
         }
 
         //加载墓碑
