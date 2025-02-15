@@ -114,7 +114,7 @@ class DeepSeekLlm(BaseLlm):
         self.api_key = api_key
 
     def generate(self, message, chat_history=[]):
-        client = OpenAI(api_key=self.api_key, base_url="https://api.deepseek.com")
+        client = OpenAI(api_key=self.api_key, base_url="https://api.deepseek.com", timeout=1800)
         messages = []
         if self.force_json:
             messages = [{"role": "system", "content": "请严格使用JSON格式输出，确保返回的字符串是有效的JSON"}]
@@ -267,7 +267,7 @@ class KimiLlm(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False):
         super().__init__(model_name, force_json)
         self.api_key = api_key
-        self.client = OpenAI(api_key=self.api_key, base_url="https://api.moonshot.cn/v1")
+        self.client = OpenAI(api_key=self.api_key, base_url="https://api.moonshot.cn/v1", timeout=1800)
 
     def generate(self, message, chat_history=[]):
         messages = []
@@ -305,7 +305,8 @@ class SiliconReasoner(BaseLlm):
         super().__init__(model_name, force_json)
         self.client = OpenAI(
                 base_url='https://api.siliconflow.cn/v1/',
-                api_key=api_key
+                api_key=api_key,
+                timeout=1800
             )
 
     def generate(self, message, chat_history=[]):
@@ -358,4 +359,3 @@ def BuildModel(model_name, api_key, force_json=False):
         return KimiLlm(model_name, api_key, force_json)
     else:
         raise ValueError("未知的模型名称:", model_name)
-
