@@ -86,6 +86,19 @@ class GameData {
         });
     }
 
+    async poison(action) {
+        return this.fetchData('/poison', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(action)
+        });
+    }
+
+
+    async toggleDayNight() {
+        return this.fetchData('/toggle_day_night', { method: 'POST' });
+    }
+
     ////////////////////////////////////////////////////
     async speak(action) {
         return this.fetchData('/speak', {
@@ -111,8 +124,6 @@ class GameData {
         });
     }
 
-
-
     async execute() {
         return this.fetchData('/execute', {
             method: 'POST',
@@ -120,23 +131,9 @@ class GameData {
         });
     }
     
-    
-    async toggleDayNight() {
-        return this.fetchData('/toggle_day_night', { method: 'POST' });
-    }
 
     async checkWinner() {
         return this.fetchData('/check_winner');
-    }
-
-    
-
-    async poison(action) {
-        return this.fetchData('/poison', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(action)
-        });
     }
     
 }

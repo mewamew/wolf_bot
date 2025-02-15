@@ -89,9 +89,44 @@ class WitchAction extends Action {
         super(game);
     }
 
+    async someone_die(player_idx, death_reason) {
+        console.log(`被杀死的玩家是：${player_idx}`);
+        await this.game.gameData.kill({ player_idx: player_idx });
+
+        const result = await this.game.gameData.getCurrentTime();
+        console.log(result);
+        if (1 == result.current_day) {
+            //如果是第一夜，允许发表遗言
+            const result = await this.game.gameData.lastWords({ player_idx: player_idx, death_reason: death_reason });
+            console.log(result);
+            await this.game.ui.showPlayer(player_idx);
+            await this.game.ui.speak(`${player_idx}号玩家思考中：`, result.thinking);
+            await this.game.ui.speak(`${player_idx}号玩家发言：`, result.speak);
+
+            //如果是猎人，允许反击
+            const  hunter = this.game.get_hunter();
+            if (hunter.index == player_idx) {
+                if (result.attack !== undefined && result.attack !== -1) {
+                    await this.game.gameData.attack({ player_idx: player_idx, target_idx: result.attack });
+                    console.log(`猎人发动反击，杀死了：${player_idx}号玩家`);
+                } else {
+                    console.log(`猎人决定不反击`);
+                }
+            }
+        }
+    }
+
     async do() {
         const witch = this.game.get_witch();
-        if (witch.is_alive) {
+        if (!witch.is_alive) {
+            //女巫已经死了
+            const result = await this.game.gameData.getWolfWantKill();
+            const killedPlayer = result.wolf_want_kill;
+            if (killedPlayer != -1) {
+                await this.game.gameData.kill({ player_idx: killedPlayer });
+                await this.someone_die(killedPlayer, "被狼人杀死");
+            }
+        } else {
             console.log("== 女巫开始行动 ==");
             const result = await this.game.gameData.decideCureOrPoison({ player_idx: witch.index });
             console.log(result);
@@ -110,34 +145,33 @@ class WitchAction extends Action {
             if (1 != result.cure) {
                 //不治疗，玩家死
                 const result = await this.game.gameData.getWolfWantKill();
+                const killedPlayer = result.wolf_want_kill;
                 if (killedPlayer != -1) {
-                    console.log(`被杀死的玩家是：${killedPlayer}`);
                     await this.game.gameData.kill({ player_idx: killedPlayer });
-
-                    const result = await this.game.gameData.getCurrentTime();
-                    console.log(result);
-                    if (1 == result.current_day) {
-                        //如果是第一夜，允许发表遗言
-                        const result = await this.game.gameData.lastWords({ player_idx: killedPlayer, death_reason: "被狼人杀死" });
-                        console.log(result);
-                        await this.game.ui.showPlayer(killedPlayer);
-                        await this.game.ui.speak(`${killedPlayer}号玩家思考中：`, result.thinking);
-                        await this.game.ui.speak(`${killedPlayer}号玩家发言：`, result.speak);
-
-                        //如果是猎人，允许反击
-                        const  hunter = this.game.get_hunter();
-                        if (hunter.index == killedPlayer) {
-                            if (result.attack !== undefined && result.attack !== -1) {
-                                await this.game.gameData.attack({ player_idx: killedPlayer, target_idx: result.attack });
-                                console.log(`猎人发动反击，杀死了：${killedPlayer}号玩家`);
-                            } else {
-                                console.log(`猎人决定不反击`);
-                            }
-                        }
-                    }
+                    await this.someone_die(killedPlayer, "被狼人杀死");
                 }
             }
+
+            if (-1 != result.poison) {
+                //不毒杀，玩家死
+                await this.game.gameData.poison({ player_idx: result.poison });
+                await this.someone_die(result.poison, "被女巫毒杀");
+            }
         }
+    }
+}
+
+class EndNightAction extends Action {
+    constructor(game) {
+        super(game);
+    }
+    async do() {
+        console.log("=== 天亮了 ===");
+        await this.game.gameData.toggleDayNight();
+        //TODO 显示天亮
+        //TODO 显示哪些玩家死亡
+        //切换到白天的背景
+        await this.game.ui.showDayBackground()
     }
 }
 
@@ -155,13 +189,13 @@ class Game {
         const result = await this.gameData.startGame();
         console.log(result.message);
         
-        ///设置行动类
+        ///按顺序设置行动类
         this.actions = []
         this.actions.push(new DivineAction(this));
         this.actions.push(new WolfAction(this));
         this.actions.push(new WitchAction(this));
+        this.actions.push(new EndNightAction(this));
     }
-
 
 
     async run() {
