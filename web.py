@@ -120,7 +120,6 @@ def speak(action: PlayerAction):
     return result
 
 
-##########################################
 @app.post("/vote")
 def vote(action: PlayerAction):
     result = game.vote(action.player_idx)
@@ -136,6 +135,7 @@ def get_vote_result():
     result = game.get_vote_result()
     return {"vote_result": result}
 
+##########################################
 
 @app.post("/execute")
 def execute():

@@ -174,6 +174,8 @@ class EndNightAction extends Action {
         await this.game.ui.hidePlayer();
         await this.game.ui.hideSpeak();
         await this.game.ui.showDayBackground();
+        //重置投票结果
+        await this.game.gameData.resetVoteResult();
     }
 }
 
@@ -184,20 +186,7 @@ class SpeakAction extends Action {
     }
 
     async do() {
-        const playerIndex = this.player_idx - 1;
-        if (!this.game.players || !Array.isArray(this.game.players)) {
-            console.error('Players data is not properly initialized');
-            return;
-        }
-        if (playerIndex < 0 || playerIndex >= this.game.players.length) {
-            console.error(`Invalid player index: ${this.player_idx}`);
-            return;
-        }
-        if (!this.game.players[playerIndex]) {
-            console.error(`Player at index ${playerIndex} is undefined`);
-            return;
-        }
-        if (this.game.players[playerIndex].is_alive) {
+        if (this.game.players[this.player_idx - 1].is_alive) {
             const result = await this.game.gameData.speak({ player_idx: this.player_idx });
             console.log(result);
             await this.game.ui.showPlayer(this.player_idx);
@@ -207,13 +196,43 @@ class SpeakAction extends Action {
     }
 }
 
+class VoteAction extends Action {
+    constructor(game, player_idx) {
+        super(game);    
+        this.player_idx = player_idx;
+    }
+
+    async do() {
+        if (this.game.players[this.player_idx - 1].is_alive) {
+            const result = await this.game.gameData.vote({ player_idx: this.player_idx });
+            console.log(result);
+            await this.game.ui.showPlayer(this.player_idx);
+            await this.game.ui.speak(`${this.player_idx}号玩家 思考中：`, result.thinking);
+            const vote_id = result.vote;
+            if (vote_id == -1) {
+                await this.game.ui.speak(`${this.player_idx}号玩家 投票：`, "我决定不投票！");
+            } else { 
+                await this.game.ui.speak(`${this.player_idx}号玩家 投票：`, `我决定投票投给【${vote_id}】号玩家！`);
+            } 
+            ///更新投票结果
+            const vote_result = await this.game.gameData.getVoteResult();
+            console.log(vote_result);
+            
+            // 遍历投票结果字典并显示
+            for (const [player_idx, votes] of Object.entries(vote_result.vote_result)) {
+                await this.game.ui.showVote(player_idx, votes);
+            }
+        }
+    }
+}
+
+
 class Game {
     constructor(ui) {
         this.gameData = new GameData();
         this.players = {}
         this.ui = ui;
         this.current_action_index  = 0;
-        this.kill_player = -1;
     }
 
     async start() {
@@ -234,6 +253,9 @@ class Game {
         this.actions.push(new EndNightAction(this));
         for (const player of this.players) {
             this.actions.push(new SpeakAction(this, player.index));
+        }
+        for (const player of this.players) {
+            this.actions.push(new VoteAction(this, player.index));
         }
     }
 

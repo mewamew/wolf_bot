@@ -106,16 +106,9 @@ class GameData {
             body: JSON.stringify(action)
         });
     }
-    
-    ////////////////////////////////////////////////////
-
 
     async resetVoteResult() {
         return this.fetchData('/reset_vote_result', { method: 'POST' });
-    }
-
-    async getVoteResult() {
-        return this.fetchData('/get_vote_result');
     }
 
     async vote(action) {
@@ -125,6 +118,14 @@ class GameData {
             body: JSON.stringify(action)
         });
     }
+
+    async getVoteResult() {
+        return this.fetchData('/get_vote_result');
+    }
+
+
+    ////////////////////////////////////////////////////
+
 
     async execute() {
         return this.fetchData('/execute', {
