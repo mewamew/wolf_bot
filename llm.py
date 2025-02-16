@@ -330,18 +330,22 @@ class DouBaoLlm(BaseLlm):
             for chunk in completion:
                 if not chunk.choices:
                     continue
-                if chunk.choices[0].delta.reasoning_content:
-                    content = chunk.choices[0].delta.reasoning_content
-                    reasoning_content += content
-                    print(content, end="", flush=True)
-                elif chunk.choices[0].delta.content:
-                    content = chunk.choices[0].delta.content
-                    full_response += content
-                    print(content, end="", flush=True)
+                delta = chunk.choices[0].delta
+                try:
+                    if hasattr(delta, 'reasoning_content') and delta.reasoning_content:
+                        content = delta.reasoning_content
+                        reasoning_content += content
+                        print(content, end="", flush=True)
+                    elif hasattr(delta, 'content') and delta.content:
+                        content = delta.content
+                        full_response += content
+                        print(content, end="", flush=True)
+                except Exception as e:
+                    logger.warning(f"处理chunk时出现警告: {str(e)}")
+                    continue
             print()
 
             return full_response, reasoning_content
-
         except Exception as e:
             logger.error(f"豆包API调用失败: {str(e)}")
             return None, str(e)
@@ -371,15 +375,11 @@ class SiliconReasoner(BaseLlm):
             max_tokens=4096
         )
         content = ""
-        reasoning_content = ""
         for chunk in response:
             if chunk.choices[0].delta.content:
                 content += chunk.choices[0].delta.content
                 print(chunk.choices[0].delta.content, end='', flush=True)
-            if chunk.choices[0].delta.reasoning_content:
-                reasoning_content += chunk.choices[0].delta.reasoning_content
-                print(chunk.choices[0].delta.reasoning_content, end='', flush=True)
-        return content, reasoning_content
+        return content, None
 
 
 
