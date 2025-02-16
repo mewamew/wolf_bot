@@ -16,7 +16,6 @@ class DivineAction extends Action {
     async do() {
         /// divine
         const diviner = this.game.get_diviner();
-        console.log(diviner);
         if (diviner.is_alive) {
             console.log("== 预言家开始预言 ==");
             const role = this.game.show_role ? diviner.role_type : "玩家";
@@ -316,7 +315,7 @@ class Game {
         await this.ui.killPlayer(player_idx);
         const result = await this.gameData.getCurrentTime();
         console.log(result);
-        if (1 == result.current_day || result.current_phase == "白天") {
+        if (1 == result.current_day || (result.current_phase == "白天" && death_reason=="被投票处决")) {
             //如果是第一夜，允许发表遗言
             const result = await this.gameData.lastWords({ player_idx: player_idx, death_reason: death_reason });
             console.log(result);
@@ -326,16 +325,18 @@ class Game {
                 await this.ui.speak(`${player_idx}号 ${role} 思考中：`, result.thinking, true);
             }
             await this.ui.speak(`${player_idx}号 ${role} 发言：`, result.speak);
-
-            //如果是猎人，允许反击
-            const  hunter = this.get_hunter();
-            if (hunter.index == player_idx) {
-                if (result.attack !== undefined && result.attack !== -1) {
-                    await this.gameData.attack({ player_idx: player_idx, target_idx: result.attack });
-                    console.log(`猎人发动反击，杀死了：${result.attack}号玩家`);
-                } else {
-                    console.log(`猎人决定不反击`);
-                }
+        }
+        //如果是猎人，并且不是被毒杀，允许反击
+        const  hunter = this.get_hunter();
+        if (hunter.index == player_idx && death_reason != "被女巫毒杀") {
+            const result = await this.gameData.revenge({ player_idx: player_idx, death_reason: death_reason });
+            console.log(result);
+            if (result.attack !== -1) {
+                await this.gameData.attack({ player_idx: player_idx, target_idx: result.attack });
+                await this.someone_die(result.attack, "被猎人杀死");
+                console.log(`猎人发动反击，杀死了：${result.attack}号玩家`);
+            } else {
+                console.log(`猎人决定不反击`);
             }
         }
     }

@@ -232,6 +232,14 @@ def get_vote_result():
     recorder.record({"vote_result": result})
     return {"vote_result": result}
 
+@app.post("/revenge")
+def revenge(action: RevengeAction):
+    if recorder.is_loaded:
+        return recorder.fetch()
+    result = game.revenge(action.player_idx, action.death_reason)
+    recorder.record(result)
+    return result
+
 @app.post("/execute")
 def execute():
     if recorder.is_loaded:

@@ -33,10 +33,6 @@ player_state:
     角色: 村民
     存活: 存活
 day: "当前是第4天白天"
-curr_state: | #当前的游戏状态
-  [
-    {'day': 1, 'day_events': [], 'night_events': []}, 
-  ]
 output_format: |
   {
     "reason": "判断胜负的理由",
