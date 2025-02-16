@@ -329,11 +329,12 @@ class Game {
         //如果是猎人，允许反击
         const  hunter = this.get_hunter();
         if (hunter.index == player_idx && death_reason != "被女巫毒杀") {
-            if (result.attack !== undefined && result.attack !== -1) {
+            if (result.attack !== -1) {
                 await this.gameData.attack({ player_idx: player_idx, target_idx: result.attack });
                 console.log(`猎人发动反击，杀死了：${result.attack}号玩家`);
             } else {
                 console.log(`猎人决定不反击`);
+                console.log(`-- ${result.attack} ---`);
             }
         }
     }
