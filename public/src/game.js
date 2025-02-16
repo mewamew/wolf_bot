@@ -325,16 +325,15 @@ class Game {
                 await this.ui.speak(`${player_idx}号 ${role} 思考中：`, result.thinking, true);
             }
             await this.ui.speak(`${player_idx}号 ${role} 发言：`, result.speak);
-
-            //如果是猎人，允许反击
-            const  hunter = this.get_hunter();
-            if (hunter.index == player_idx) {
-                if (result.attack !== undefined && result.attack !== -1) {
-                    await this.gameData.attack({ player_idx: player_idx, target_idx: result.attack });
-                    console.log(`猎人发动反击，杀死了：${result.attack}号玩家`);
-                } else {
-                    console.log(`猎人决定不反击`);
-                }
+        }
+        //如果是猎人，允许反击
+        const  hunter = this.get_hunter();
+        if (hunter.index == player_idx && death_reason != "被女巫毒杀") {
+            if (result.attack !== undefined && result.attack !== -1) {
+                await this.gameData.attack({ player_idx: player_idx, target_idx: result.attack });
+                console.log(`猎人发动反击，杀死了：${result.attack}号玩家`);
+            } else {
+                console.log(`猎人决定不反击`);
             }
         }
     }
