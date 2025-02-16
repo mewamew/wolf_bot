@@ -3,7 +3,7 @@
 
 class GameData {
     async fetchData(url, options = {}) {
-        const timeout = 300000; // 30秒超时
+        const timeout = 1000*1800; // 30秒超时
         const timeoutPromise = new Promise((_, reject) => {
             setTimeout(() => reject(new Error('请求超时')), timeout);
         });
