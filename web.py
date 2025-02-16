@@ -144,6 +144,12 @@ def execute():
     players = game.get_players()
     votes = game.get_vote_result()
 
+    if not votes:
+        return {
+            "message": "没有投票结果",
+            "executed_player": -1
+        }
+
     max_votes = max(votes.values())
     voted_out = [player for player, count in votes.items() if count == max_votes]
     
