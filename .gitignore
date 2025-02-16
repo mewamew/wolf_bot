@@ -1,5 +1,6 @@
 __pycache__
 *.txt
 test.py
-.DS_Store
 config.json
+.DS_Store
+
