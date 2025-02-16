@@ -331,8 +331,7 @@ class Game {
             if (hunter.index == player_idx) {
                 if (result.attack !== undefined && result.attack !== -1) {
                     await this.gameData.attack({ player_idx: player_idx, target_idx: result.attack });
-                    await this.gameData.attack({ player_idx: player_idx, target_idx: result.attack });
-                    console.log(`猎人发动反击，杀死了：${player_idx}号玩家`);
+                    console.log(`猎人发动反击，杀死了：${result.attack}号玩家`);
                 } else {
                     console.log(`猎人决定不反击`);
                 }
