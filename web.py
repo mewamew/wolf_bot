@@ -29,6 +29,9 @@ class DecideCureOrPoisonAction(BaseModel):
 class PoisonAction(BaseModel):
     player_idx: int
 
+class RevengeAction(BaseModel):
+    player_idx: int
+    death_reason: str
 
 class Recorder():
     def __init__(self, game):
