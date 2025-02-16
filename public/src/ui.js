@@ -207,18 +207,15 @@ class Ui {
             await this.typeWriterEffect(currentLines.join('\n'), this.speakTextSpirit);
             await sleep(1000);
         }
-
+        //停留1秒
+        await sleep(2000);
+        await this.hideSpeak();
         // 恢复背景
         if (prevBg === 'day') {
             this.showDayBackground();
         } else if (prevBg === 'night') {
             this.showNightBackground();
         }
-
-        ///TODO恢复之前的背景（可能是白天或者黑夜的背景）
-
-        //停留1秒
-        await sleep(1000);
     }
 
     async hideSpeak() {
@@ -229,7 +226,7 @@ class Ui {
     
     //在指定的玩家头顶显示投票
     async showVote(player_index, number) {
-        for (let i = 0; i < this.players_vote[player_index-1].length; i++) {
+        for (let i = 0; i < 5; i++) {
             this.players_vote[player_index-1][i].visible = false;
         }
         this.players_vote[player_index-1][number-1].visible = true;

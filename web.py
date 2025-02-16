@@ -3,9 +3,9 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from game import WerewolfGame
+import json
+import sys
 
-app = FastAPI()
-game = WerewolfGame()
 
 class PlayerAction(BaseModel):
     player_idx:int
@@ -25,13 +25,43 @@ class DecideKillAction(BaseModel):
 class DecideCureOrPoisonAction(BaseModel):
     player_idx: int
 
-class RevengeAction(BaseModel):
-    player_idx: int
-    death_reason: str
 
 class PoisonAction(BaseModel):
     player_idx: int
+
+
+class Recorder():
+    def __init__(self, game):
+        self.log = []
+        self.is_loaded = False
+        self.index  = 0
     
+    def record(self, response):
+        self.log.append(
+            {
+                "response": response
+            }
+        )
+
+        with open(f"logs/replay_{game.start_time}.json", 'w') as f:
+            json.dump(self.log, f)
+
+    def load(self, filename):
+        print("加载日志文件")
+        with open(filename, 'r') as f:
+            self.log = json.load(f)
+            self.is_loaded = True
+
+    def fetch(self):
+        result = self.log[self.index]
+        self.index += 1
+        return result["response"]
+
+
+game = WerewolfGame()
+recorder = Recorder(game)
+
+app = FastAPI()
 # 设置静态文件目录
 app.mount("/static", StaticFiles(directory="public"), name="public")
 
@@ -41,113 +71,176 @@ def default():
 
 @app.get("/start")
 def start_game():
+    if recorder.is_loaded:
+        return recorder.fetch()
+
     game.start()
+    recorder.record({"message": "游戏开始"})
     return {"message": "Game started"}
 
 @app.get("/status")
 def get_status():
+    if recorder.is_loaded:
+        return recorder.fetch()
     players = game.get_players()
+    recorder.record(players)
     return players
 
 @app.post("/divine")
 def divine(action: PlayerAction):
+    if recorder.is_loaded:
+        return recorder.fetch()
     result = game.divine(action.player_idx)
+    recorder.record(result)
     return result
 
 
 @app.post("/reset_wolf_want_kill")
 def reset_wolf_want_kill():
+    if recorder.is_loaded:
+        return recorder.fetch()
     game.reset_wolf_want_kill()
+    recorder.record({"message": "狼人想杀的目标已重置"})
     return {"message": "狼人想杀的目标已重置"}
 
 @app.get("/get_wolf_want_kill")
 def get_wolf_want_kill():
+    if recorder.is_loaded:
+        return recorder.fetch()
     result = game.get_wolf_want_kill()
-    return {"wolf_want_kill": result}
+    wolf_want_kill = {"wolf_want_kill": result}
+    recorder.record(wolf_want_kill)
+    return wolf_want_kill
 
 
 @app.post("/decide_kill")
 def decide_kill(action: DecideKillAction):
+    if recorder.is_loaded:
+        return recorder.fetch()
     result = game.decide_kill(action.player_idx, action.is_second_vote)
+    recorder.record(result)
     return result
 
 @app.post("/kill")
 def kill(action: PlayerAction):
+    if recorder.is_loaded:
+        return recorder.fetch()
     game.kill(action.player_idx)
+    recorder.record({"message": f"玩家 {action.player_idx} 被杀死"})
     return {"message": f"玩家 {action.player_idx} 被杀死"}
     
 @app.get("/current_time")
 def get_current_time():
-    return {
+    if recorder.is_loaded:
+        return recorder.fetch()
+
+    current_time = {
         "current_day": game.get_day(),
         "current_phase": game.current_phase
     }
+    recorder.record(current_time)
+    return current_time
+    
 
 @app.post("/last_words")
 def last_words(action: LastWordsAction):
+    if recorder.is_loaded:
+        return recorder.fetch()
     result = game.last_words(action.player_idx, action.death_reason)
+    recorder.record(result)
     return result
 
 
 @app.post("/attack")
 def attack(action: AttackAction):
-    result = game.attack(action.target_idx)
+    if recorder.is_loaded:
+        return recorder.fetch()
+    attack_result = game.attack(action.target_idx)
     players = game.get_players()
-    return {
+    result = {
         "message": f"{players[action.player_idx]['name']} 攻击了 {players[action.target_idx]['name']}",
         "attacked_player": action.target_idx
     }
+    recorder.record(result)
+    return result
 
 @app.post("/toggle_day_night")
 def toggle_day_night():
+    if recorder.is_loaded:
+        return recorder.fetch()
     game.toggle_day_night()
+    recorder.record({"message": "Day/Night toggled"})
     return {"message": "Day/Night toggled"}
 
 
 
 @app.post("/decide_cure_or_poison")
 def decide_cure_or_poison(action: DecideCureOrPoisonAction):
+    if recorder.is_loaded:
+        return recorder.fetch()
     result = game.decide_cure_or_poison(action.player_idx)
+    recorder.record(result)
     return result
 
 
 @app.post("/poison")
 def poison(action: PoisonAction):
+    if recorder.is_loaded:
+        return recorder.fetch()
     game.poison(action.player_idx)
+    recorder.record({"message": f"玩家 {action.player_idx} 被毒死"})
     return {"message": f"玩家 {action.player_idx} 被毒死"}
 
 @app.post("/cure")
 def cure(action: PlayerAction):
+    if recorder.is_loaded:
+        return recorder.fetch()
     game.cure(action.player_idx)
+    recorder.record({"message": "治疗成功"})
     return {"message": "治疗成功"}
 
 @app.post("/speak")
 def speak(action: PlayerAction):
+    if recorder.is_loaded:
+        return recorder.fetch()
     result = game.speak(action.player_idx)
+    recorder.record(result)
     return result
 
 
 @app.post("/vote")
 def vote(action: PlayerAction):
+    if recorder.is_loaded:
+        return recorder.fetch()
     result = game.vote(action.player_idx)
+    recorder.record(result)
     return result
 
 @app.post("/reset_vote_result")
 def reset_vote_result():
+    if recorder.is_loaded:
+        return recorder.fetch()
     game.reset_vote_result()
+    recorder.record({"message": "投票结果已重置"})
     return {"message": "投票结果已重置"}
 
 @app.get("/get_vote_result")
 def get_vote_result():
+    if recorder.is_loaded:
+        return recorder.fetch()
     result = game.get_vote_result()
+    recorder.record({"vote_result": result})
     return {"vote_result": result}
 
 @app.post("/execute")
 def execute():
+    if recorder.is_loaded:
+        return recorder.fetch()
     players = game.get_players()
     votes = game.get_vote_result()
 
     if not votes:
+        recorder.record({"message": "没有投票结果", "executed_player": -1})
         return {
             "message": "没有投票结果",
             "executed_player": -1
@@ -164,19 +257,18 @@ def execute():
     else:
         voted_out_player = voted_out[0]
         game.execute(voted_out_player)
+        recorder.record({"message": f"{players[voted_out_player]['name']} 被处决!", "executed_player": voted_out_player})
         return {
             "message": f"{players[voted_out_player]['name']} 被处决!",
             "executed_player": voted_out_player
         }
 
-@app.post("/revenge")
-def revenge(action: RevengeAction):
-    result = game.revenge(action.player_idx, action.death_reason)
-    return result
-
 @app.get("/check_winner")
 def check_winner():
+    if recorder.is_loaded:
+        return recorder.fetch()
     result = game.check_winner()
+    recorder.record({"winner": result})
     return {"winner": result}
 
 
@@ -184,4 +276,9 @@ def check_winner():
 
 if __name__ == "__main__":
     import uvicorn
+    if len(sys.argv) > 1:
+        log_path = sys.argv[1]
+        recorder.load(log_path)
+
+
     uvicorn.run(app, host="127.0.0.1", port=8000, timeout_keep_alive=1800)

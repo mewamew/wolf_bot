@@ -11,7 +11,6 @@ import logging
 import socket
 import datetime
 import os
-from volcenginesdkarkruntime import Ark
 
 logger = logging.getLogger(__name__)
 
@@ -296,62 +295,6 @@ class KimiLlm(BaseLlm):
         return full_response, None
 
 '''
-豆包API支持的模型:
-DouBao-2.7B
-DouBao-7B
-DouBao-1.5-pro-32k
-'''
-class DouBaoLlm(BaseLlm):
-    def __init__(self, model_name, api_key, force_json=False):
-        super().__init__(model_name, force_json)
-        self.api_key = api_key
-
-    def generate(self, message, chat_history=[]):
-        messages = []
-        if self.force_json:
-            messages = [{"role": "system", "content": "请严格使用JSON格式输出，确保返回的字符串是有效的JSON"}]
-        for msg in chat_history:
-            if msg["role"] == "bot":
-                messages.append({"role": "assistant", "content": msg["content"]})
-            else:
-                messages.append({"role": "user", "content": msg["content"]})
-        messages.append({"role": "user", "content": message})
-
-        try:
-            client = Ark(api_key=self.api_key)
-
-            completion = client.chat.completions.create(
-                model=self.model_name,
-                messages = messages,
-                stream=True
-            )
-            full_response = ""
-            reasoning_content = ""
-            for chunk in completion:
-                if not chunk.choices:
-                    continue
-                delta = chunk.choices[0].delta
-                try:
-                    if hasattr(delta, 'reasoning_content') and delta.reasoning_content:
-                        content = delta.reasoning_content
-                        reasoning_content += content
-                        print(content, end="", flush=True)
-                    elif hasattr(delta, 'content') and delta.content:
-                        content = delta.content
-                        full_response += content
-                        print(content, end="", flush=True)
-                except Exception as e:
-                    logger.warning(f"处理chunk时出现警告: {str(e)}")
-                    continue
-            print()
-
-            return full_response, reasoning_content
-        except Exception as e:
-            logger.error(f"豆包API调用失败: {str(e)}")
-            return None, str(e)
-
-
-'''
 硅基流动的推理模型: 
 https://api.siliconflow.cn/v1/
 deepseek-ai/DeepSeek-R1
@@ -375,11 +318,15 @@ class SiliconReasoner(BaseLlm):
             max_tokens=4096
         )
         content = ""
+        reasoning_content = ""
         for chunk in response:
             if chunk.choices[0].delta.content:
                 content += chunk.choices[0].delta.content
                 print(chunk.choices[0].delta.content, end='', flush=True)
-        return content, None
+            if chunk.choices[0].delta.reasoning_content:
+                reasoning_content += chunk.choices[0].delta.reasoning_content
+                print(chunk.choices[0].delta.reasoning_content, end='', flush=True)
+        return content, reasoning_content
 
 
 
@@ -410,7 +357,5 @@ def BuildModel(model_name, api_key, force_json=False):
         return ZhipuLlm(model_name, api_key, force_json)
     elif model_name in ["moonshot-v1-32k"]:
         return KimiLlm(model_name, api_key, force_json)
-    elif model_name.startswith("ep-"):
-        return DouBaoLlm(model_name, api_key, force_json)
     else:
         raise ValueError("未知的模型名称:", model_name)
