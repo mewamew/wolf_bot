@@ -25,6 +25,9 @@ class DecideKillAction(BaseModel):
 class DecideCureOrPoisonAction(BaseModel):
     player_idx: int
 
+class RevengeAction(BaseModel):
+    player_idx: int
+    death_reason: str
 
 class PoisonAction(BaseModel):
     player_idx: int
@@ -165,6 +168,11 @@ def execute():
             "message": f"{players[voted_out_player]['name']} 被处决!",
             "executed_player": voted_out_player
         }
+
+@app.post("/revenge")
+def revenge(action: RevengeAction):
+    result = game.revenge(action.player_idx, action.death_reason)
+    return result
 
 @app.get("/check_winner")
 def check_winner():

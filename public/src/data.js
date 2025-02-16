@@ -78,6 +78,14 @@ class GameData {
         });
     }
 
+    async revenge(action) {
+        return this.fetchData('/revenge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(action)
+        });
+    }
+
     async attack(action) {
         return this.fetchData('/attack', {
             method: 'POST',

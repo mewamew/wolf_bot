@@ -229,7 +229,7 @@ class Ui {
     
     //在指定的玩家头顶显示投票
     async showVote(player_index, number) {
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < this.players_vote[player_index-1].length; i++) {
             this.players_vote[player_index-1][i].visible = false;
         }
         this.players_vote[player_index-1][number-1].visible = true;

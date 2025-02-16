@@ -239,6 +239,15 @@ class WerewolfGame:
                 f.write(f"思考过程：{resp['thinking']}\n")
             f.write(f"{resp['speak']}\n")
         return resp
+
+    def revenge(self, player_idx, death_reason):
+        resp = self.players[player_idx-1].revenge(death_reason)
+        with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
+            f.write(f"[{player_idx}号玩家反击] 死亡原因：{death_reason}\n")
+            if "thinking" in resp:
+                f.write(f"思考过程：{resp['thinking']}\n")
+            f.write(f"反击对象: {resp['attack']}\n")
+        return resp
     
     def execute(self, player_idx):
         # 处决玩家

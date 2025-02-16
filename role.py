@@ -26,18 +26,15 @@ class BaseRole:
     def get_players_state(self):
         state = []
         for player in self.game.players:
-            state.append({
-                "player_index": f"{player.player_index}号玩家",
-                "is_alive": "存活" if player.is_alive else "死亡"
-            })
+            state.append(f"{player.player_index}号玩家: {'存活' if player.is_alive else '死亡'}")
         return state
 
     def prompt_preprocess(self, prompt_template):
-        prompt_template['role'] = f"你是一名{self.role_type}"
-        prompt_template['day'] = f'当前是第{self.game.current_day}天'
-        prompt_template['player_index'] = f"你是{self.player_index}号玩家"
-        prompt_template['curr_state'] = self.game.history.get_history()
-        prompt_template['players_state'] = self.get_players_state()
+        prompt_template['角色'] = f"你是一名{self.role_type}"
+        prompt_template['第几天'] = f'当前是第{self.game.current_day}天'
+        prompt_template['玩家编号'] = f"你是{self.player_index}号玩家"
+        prompt_template['事件'] = self.game.history.get_history()
+        prompt_template['玩家状态'] = self.get_players_state()
         return prompt_template
 
     def handle_action(self, prompt_file, extra_data=None, retry_count=0):
@@ -120,6 +117,7 @@ class BaseRole:
         '''被毒杀'''
         self.is_alive = False
         self.game.history.add_event(PoisonEvent(self.player_index))
+        self.game.history.add_event(KillEvent(self.player_index))
         
     def be_cured(self):
         '''被治愈'''
@@ -135,17 +133,21 @@ class Hunter(BaseRole):
     def __init__(self, player_index, model_name, api_key,  game):
         super().__init__(player_index, "猎人", model_name, api_key,  game)
     
-    def last_words(self, death_reason):
-        """发表遗言(死后)"""
-        background = f"您是一名经验丰富的狼人杀玩家,你正在玩的是标准的6人局狼人杀, 你是【{self.player_index}号玩家】, 你扮演的是【{self.role_type}】, 目前你由于游戏出局，需要做最后发言"
+    def make_extra_data(self):
         extra_data = {
-            'reason': death_reason,
-            '任务背景': background
+            "猎人技能": "当猎人被狼人杀死或者被投票出局时，猎人可以选择发动反击技能带走一名玩家"
         }
-        resp_dict = self.handle_action('prompts/prompt_hunter_lastword.yaml', extra_data)
-        if resp_dict:
-            self.game.history.add_event(LastWordEvent(self.player_index, resp_dict['speak']))
-            return resp_dict
+        return extra_data
+
+    def last_words(self, death_reason):
+        extra_data = self.make_extra_data()
+        return super().last_words(death_reason, extra_data)
+
+    def revenge(self, death_reason):
+        extra_data = {
+            "出局的原因": death_reason
+        }
+        return  self.handle_action('prompts/prompt_hunter_revenge.yaml', extra_data)
 
 
 class Seer(BaseRole):
@@ -234,8 +236,8 @@ class Witch(BaseRole):
     
     def make_extra_data(self):
         extra_data = {
-            'cured_someone': f'已经救治了{self.cured_someone}号玩家' if self.cured_someone != -1 else "还没使用过救治技能",
-            'poisoned_someone': f'已经毒杀了{self.poisoned_someone}号玩家' if self.poisoned_someone != -1 else "还没使用过毒杀技能"
+            'cured_someone': f'已经使用解药救过{self.cured_someone}号玩家，不允许再次使用解药技能' if self.cured_someone != -1 else "还没使用过救治技能",
+            'poisoned_someone': f'已经使用毒药杀了{self.poisoned_someone}号玩家， 不允许再次使用解药技能' if self.poisoned_someone != -1 else "还没使用过毒杀技能"
         }
         return extra_data
 
