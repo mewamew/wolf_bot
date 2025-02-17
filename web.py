@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from game import WerewolfGame
 import json
 import sys
+import copy
 
 
 class PlayerAction(BaseModel):
@@ -42,7 +43,7 @@ class Recorder():
     def record(self, response):
         self.log.append(
             {
-                "response": response
+                "response": copy.deepcopy(response)
             }
         )
 
