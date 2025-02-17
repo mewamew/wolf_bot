@@ -277,8 +277,12 @@ class WerewolfGame:
         print(f"狼人数：{werewolf_count},村民数：{villager_count}")
 
         if werewolf_count > villager_count:
+            with open(f'logs/result_{self.start_time}.txt', 'a', encoding='utf-8') as log_file:
+                log_file.write(f"【{self.current_day} {self.current_phase}】 狼人胜利\n")
             return '狼人胜利'
         if werewolf_count == 0:
+            with open(f'logs/result_{self.start_time}.txt', 'a', encoding='utf-8') as log_file:
+                log_file.write(f"【{self.current_day} {self.current_phase}】 村民胜利\n")
             return '村民胜利'
         if villager_count > werewolf_count:
             return '胜负未分'

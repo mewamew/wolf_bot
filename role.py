@@ -102,22 +102,30 @@ class BaseRole:
         '''被放逐'''
         self.is_alive = False
         self.game.history.add_event(ExecuteEvent(self.player_index))
+        with open(f'logs/result_{self.game.start_time}.txt', 'a', encoding='utf-8') as log_file:
+            log_file.write(f"【{self.game.current_day} {self.game.current_phase}】 【{self.player_index}】号【{self.role_type}】被处决\n")
 
     def be_attacked(self):
         '''被攻击'''
         self.is_alive = False
         self.game.history.add_event(AttackEvent(self.player_index))
+        with open(f'logs/result_{self.game.start_time}.txt', 'a', encoding='utf-8') as log_file:
+            log_file.write(f"【{self.game.current_day} {self.game.current_phase}】 【{self.player_index}】号【{self.role_type}】被猎人反击杀死\n")
 
     def be_killed(self):
         '''被杀'''
         self.is_alive = False
         self.game.history.add_event(KillEvent(self.player_index))
+        with open(f'logs/result_{self.game.start_time}.txt', 'a', encoding='utf-8') as log_file:
+            log_file.write(f"【{self.game.current_day} {self.game.current_phase}】 【{self.player_index}】号【{self.role_type}】被狼人杀死\n")
 
     def be_poisoned(self):
         '''被毒杀'''
         self.is_alive = False
         self.game.history.add_event(PoisonEvent(self.player_index))
         self.game.history.add_event(KillEvent(self.player_index))
+        with open(f'logs/result_{self.game.start_time}.txt', 'a', encoding='utf-8') as log_file:
+            log_file.write(f"【{self.game.current_day} {self.game.current_phase}】 【{self.player_index}】号【{self.role_type}】被女巫毒死\n")
         
     def be_cured(self):
         '''被治愈'''
