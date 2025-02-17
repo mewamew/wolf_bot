@@ -11,7 +11,7 @@ import logging
 import socket
 import datetime
 import os
-from volcenginesdkarkruntime import Ark
+
 
 logger = logging.getLogger(__name__)
 
@@ -305,6 +305,12 @@ class DouBaoLlm(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False):
         super().__init__(model_name, force_json)
         self.api_key = api_key
+        self.client = OpenAI(
+            # 替换为您需要调用的模型服务Base Url
+            base_url="https://ark.cn-beijing.volces.com/api/v3/",
+            # 环境变量中配置您的API Key
+            api_key=self.api_key
+        )
 
     def generate(self, message, chat_history=[]):
         messages = []
@@ -318,16 +324,15 @@ class DouBaoLlm(BaseLlm):
         messages.append({"role": "user", "content": message})
 
         try:
-            client = Ark(api_key=self.api_key)
-
-            completion = client.chat.completions.create(
-                model=self.model_name,
-                messages = messages,
-                stream=True
+            stream = self.client.chat.completions.create(
+            model=self.model_name,
+            messages=messages,
+                stream=True,
             )
+
             full_response = ""
             reasoning_content = ""
-            for chunk in completion:
+            for chunk in stream:
                 if not chunk.choices:
                     continue
                 delta = chunk.choices[0].delta

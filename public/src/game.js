@@ -361,7 +361,9 @@ class Game {
             "qwen-max-2025-01-25":"qwen",
             "moonshot-v1-32k":"kimi",
             "glm-4-plus":"glm",
-            "Baichuan4":"baichuan"
+            "Baichuan4":"baichuan",
+            "ep-20250216231709-2qcrf":"deepseek",
+            "ep-20250216184924-4n4b2":"doubao"
         };
         for (const player of this.players) {
             if (player.model in model_name) {

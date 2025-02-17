@@ -65,7 +65,8 @@ class Ui {
             { alias: 'logo_kimi', src: 'assets/logo_kimi.png' },
             { alias: 'logo_gemini', src: 'assets/logo_gemini.png' },
             { alias: 'logo_glm', src: 'assets/logo_glm.png' },
-            { alias: 'logo_baichuan', src: 'assets/logo_baichuan.png' }
+            { alias: 'logo_baichuan', src: 'assets/logo_baichuan.png' },
+            { alias: 'logo_doubao', src: 'assets/logo_doubao.png' }
 
         ];
         await PIXI.Assets.load(assets);
@@ -135,6 +136,7 @@ class Ui {
             logo_map["gemini"] = await this.loadSprite(`logo_gemini`, 6, false, 240+(i-1) * 420, 2020, 0.5);
             logo_map["glm"] = await this.loadSprite(`logo_glm`, 6, false, 240+(i-1) * 420, 2020, 0.5);
             logo_map["baichuan"] = await this.loadSprite(`logo_baichuan`, 6, false, 240+(i-1) * 420, 2020, 0.5);
+            logo_map["doubao"] = await this.loadSprite(`logo_doubao`, 6, false, 240+(i-1) * 420, 2020, 0.5);
             this.player_model_logos.push(logo_map);
         }
         //加载玩家编号
