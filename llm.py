@@ -357,6 +357,53 @@ class DouBaoLlm(BaseLlm):
 
 
 '''
+腾讯混元大模型
+hunyuan-turbo
+'''
+class HunyuanLlm(BaseLlm):
+    def __init__(self, model_name, api_key, force_json=False):
+        super().__init__(model_name, force_json)
+        self.api_key = api_key
+        self.client = OpenAI(
+            api_key=self.api_key,
+            base_url="https://api.hunyuan.cloud.tencent.com/v1",
+            timeout=1800
+        )
+
+    def generate(self, message, chat_history=[]):
+        messages = []
+        if self.force_json:
+            messages = [{"role": "system", "content": "请严格使用JSON格式输出，确保返回的字符串是有效的JSON"}]
+        for msg in chat_history:
+            if msg["role"] == "bot":
+                messages.append({"role": "assistant", "content": msg["content"]})
+            else:
+                messages.append({"role": "user", "content": msg["content"]})
+        messages.append({"role": "user", "content": message})
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                stream=True,
+                extra_body={
+                    "enable_enhancement": True
+                }
+            )
+
+            full_response = ""
+            for chunk in response:
+                if chunk.choices[0].delta.content:
+                    content = chunk.choices[0].delta.content
+                    full_response += content
+                    print(content, end='', flush=True)
+            return full_response, None
+        except Exception as e:
+            logger.error(f"混元API调用失败: {str(e)}")
+            return None, str(e)
+
+
+'''
 硅基流动的推理模型: 
 https://api.siliconflow.cn/v1/
 deepseek-ai/DeepSeek-R1
@@ -417,5 +464,7 @@ def BuildModel(model_name, api_key, force_json=False):
         return KimiLlm(model_name, api_key, force_json)
     elif model_name.startswith("ep-"):
         return DouBaoLlm(model_name, api_key, force_json)
+    elif model_name in ["hunyuan-large", "hunyuan-turbo-latest"]:
+        return HunyuanLlm(model_name, api_key, force_json)
     else:
         raise ValueError("未知的模型名称:", model_name)
