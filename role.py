@@ -247,15 +247,19 @@ class Wolf(BaseRole):
         return super().speak(content, extra_data)
     
     
-    def decide_kill(self, want_kill=None):
+    def decide_kill(self, kill_id, want_kill=None):
         extra_data = self.make_extra_data()
         if want_kill:
             extra_data['第几轮投票'] = 2
             extra_data['第一轮投票结果'] = want_kill
         else:
             extra_data['第几轮投票'] = 1
-        resp_dict = self.handle_action('prompts/prompt_kill.yaml', extra_data)
-        
+        resp_dict = {}
+        if kill_id == -100:
+            resp_dict = self.handle_action('prompts/prompt_kill.yaml', extra_data)
+        else:
+            resp_dict['kill'] = kill_id
+            resp_dict['reason'] = ''
         if resp_dict:
             return resp_dict
         

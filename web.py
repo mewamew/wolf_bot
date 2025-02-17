@@ -30,6 +30,7 @@ class AttackAction(BaseModel):
     
 class DecideKillAction(BaseModel):
     player_idx: int
+    kill_id: int = -100
     is_second_vote: bool
     
 class DecideCureOrPoisonAction(BaseModel):
@@ -130,7 +131,7 @@ def get_wolf_want_kill():
 def decide_kill(action: DecideKillAction):
     if recorder.is_loaded:
         return recorder.fetch()
-    result = game.decide_kill(action.player_idx, action.is_second_vote)
+    result = game.decide_kill(action.player_idx, action.kill_id, action.is_second_vote)
     recorder.record(result)
     return result
 

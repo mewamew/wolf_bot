@@ -138,15 +138,15 @@ class WerewolfGame:
         resp = self.players[player_idx-1].divine()
         return resp
     
-    def decide_kill(self, player_idx, is_second_vote=False):
+    def decide_kill(self, player_idx, kill_id, is_second_vote=False):
         # 决定杀谁
         if is_second_vote:
             # 将字典转换为对象列表
             kill_list = [{"player_index": idx, "kill": info["kill"], "reason": info["reason"]} 
                         for idx, info in self.wolf_want_kill.items()]
-            result = self.players[player_idx-1].decide_kill(kill_list)
+            result = self.players[player_idx-1].decide_kill(kill_id, kill_list)
         else:
-            result = self.players[player_idx-1].decide_kill()
+            result = self.players[player_idx-1].decide_kill(kill_id)
         
         self.wolf_want_kill[player_idx] = {
             "kill": result["kill"],

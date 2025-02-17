@@ -46,34 +46,51 @@ class WolfAction extends Action {
         super(game);
     }
     
+    async handleWolfVote(wolf, is_second_vote) {
+        let kill_id = -100;
+        await this.game.ui.showPlayer(wolf.index);
+        if (wolf.is_human) {
+            while (true) {
+                const input = await this.game.ui.showHumanInput(`请输入你的杀人目标 :1~9\n 输入-1代表放弃`);
+                kill_id = parseInt(input);
+                if (!isNaN(kill_id) && (kill_id >= -1 && kill_id <= 9)) {
+                    break;
+                }
+                alert("请输入正确的数字！");
+            }
+        }
+        const response = await this.game.gameData.decideKill({ player_idx: wolf.index, kill_id, is_second_vote });
+        console.log(response);
+        let killWho = "我决定今晚不杀人！"
+        if (-1 !== response.kill) {
+            killWho = `我决定杀掉【${response.kill}】 号玩家!`;
+        }
+        const role = this.get_role(wolf.index);
+        if (this.game.display_thinking) {
+            await this.game.ui.speak(`${wolf.index}号 ${role} 思考中：`, response.reason, true);
+        }
+        await this.game.ui.speak(`${wolf.index}号 ${role} `, killWho);
+        await this.game.ui.hidePlayer();
+    }
+
     async do() {
         console.log("== 狼人开始行动 ==");
         //重置投票
         await this.game.gameData.resetWolfWantKill();
         const wolves = this.game.get_wolves();
-        /// 第一轮投票
+        
+        // 第一轮投票
         for (const wolf of wolves) {
             if (wolf.is_alive) {
-                const response = await this.game.gameData.decideKill({ player_idx: wolf.index,is_second_vote: false });
-                console.log(response);
-                await this.game.ui.showPlayer(wolf.index);
-                let killWho = "我决定今晚不杀人！"
-                if (-1 !== response.kill) {
-                    killWho = `我决定杀掉【${response.kill}】 号玩家!`;
-                }
-                const role = this.game.display_role ? wolf.role_type : "玩家";
-                if (this.game.display_thinking) {
-                    await this.game.ui.speak(`${wolf.index}号 ${role} 思考中：`, response.reason, true);
-                }
-                await this.game.ui.speak(`${wolf.index}号 ${role} `, killWho);
-                await this.game.ui.hidePlayer();
+                await this.handleWolfVote(wolf, false);
             }
         }
 
-        /// 获取投票结果
+        // 获取投票结果
         const result = await this.game.gameData.getWolfWantKill();
         console.log("狼人投票结果：", result);
         const killedPlayer = result.wolf_want_kill;
+        
         if (killedPlayer != -1) {
             console.log(`被杀死的玩家是：${killedPlayer} 号玩家`);
         } else {
@@ -81,22 +98,11 @@ class WolfAction extends Action {
             console.log("无效投票，继续下一轮投票");
             for (const wolf of wolves) {
                 if (wolf.is_alive) {
-                    const response = await this.game.gameData.decideKill({ player_idx: wolf.index,is_second_vote: true });
-                    console.log(response);
-                    await this.game.ui.showPlayer(wolf.index);
-                    let killWho = "我决定今晚不杀人！"
-                    if (-1 !== response.kill) {
-                        killWho = `我决定杀掉【${response.kill}】 号玩家!`;
-                    }
-                    const role = this.game.display_role ? wolf.role_type : "玩家";
-                    if (this.game.display_thinking) {
-                        await this.game.ui.speak(`${wolf.index}号 ${role} 思考中：`, response.reason, true);
-                    }
-                    await this.game.ui.speak(`${wolf.index}号 ${role} `, killWho);
-                    await this.game.ui.hidePlayer();
+                    await this.handleWolfVote(wolf, true);
                 }
             }
-            /// 获取投票结果
+            
+            // 获取第二轮投票结果
             const result = await this.game.gameData.getWolfWantKill();
             console.log("狼人投票结果：", result);
             const killedPlayer = result.wolf_want_kill;
