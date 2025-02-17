@@ -48,7 +48,9 @@ class WolfAction extends Action {
     
     async handleWolfVote(wolf, is_second_vote) {
         let kill_id = -100;
-        await this.game.ui.showPlayer(wolf.index);
+        if (this.game.display_wolf_action) {
+            await this.game.ui.showPlayer(wolf.index);
+        }
         if (wolf.is_human) {
             while (true) {
                 const input = await this.game.ui.showHumanInput(`请输入你的杀人目标 :1~9\n 输入-1代表放弃`);
@@ -66,11 +68,13 @@ class WolfAction extends Action {
             killWho = `我决定杀掉【${response.kill}】 号玩家!`;
         }
         const role = this.get_role(wolf.index);
-        if (this.game.display_thinking) {
-            await this.game.ui.speak(`${wolf.index}号 ${role} 思考中：`, response.reason, true);
+        if (this.game.display_wolf_action) {
+            if (this.game.display_thinking) {
+                await this.game.ui.speak(`${wolf.index}号 ${role} 思考中：`, response.reason, true);
+            }
+            await this.game.ui.speak(`${wolf.index}号 ${role} `, killWho);
+            await this.game.ui.hidePlayer();
         }
-        await this.game.ui.speak(`${wolf.index}号 ${role} `, killWho);
-        await this.game.ui.hidePlayer();
     }
 
     async do() {
@@ -135,7 +139,9 @@ class WitchAction extends Action {
             console.log("== 女巫开始行动 ==");
             const result = await this.game.gameData.decideCureOrPoison({ player_idx: witch.index });
             console.log(result);
-            await this.game.ui.showPlayer(witch.index);
+            if (this.game.display_witch_action) {
+                await this.game.ui.showPlayer(witch.index);
+            }
             let cureWho = "我决定今晚不治疗！"
             if (1 == result.cure) {
                 cureWho = `我决定治疗【${killedPlayer}】号玩家！`;
@@ -147,12 +153,14 @@ class WitchAction extends Action {
             if (-1 != result.poison) {
                 poisonWho = `我决定毒杀【${result.poison}】 号玩家！`;
             }
-            const role = this.game.display_role ? witch.role_type : "玩家";
-            if (this.game.display_thinking) {
-                await this.game.ui.speak(`${witch.index}号 ${role} 思考中：`, result.thinking, true);
+            const role = this.get_role(witch.index);
+            if (this.game.display_witch_action) {
+                if (this.game.display_thinking) {
+                    await this.game.ui.speak(`${witch.index}号 ${role} 思考中：`, result.thinking, true);
+                }
+                await this.game.ui.speak(`${witch.index}号 ${role} `, cureWho + poisonWho);
+                await this.game.ui.hidePlayer();
             }
-            await this.game.ui.speak(`${witch.index}号 ${role} `, cureWho + poisonWho);
-            await this.game.ui.hidePlayer();
             //根据女巫的决策结果进行操作
             if (1 != result.cure) {
                 //不治疗，玩家死
