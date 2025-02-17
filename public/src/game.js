@@ -97,6 +97,9 @@ class Game {
             if (player.model in model_name) {
                 this.ui.showModelLogo(player.index, model_name[player.model]);
             }
+            if (this.display_role) {
+                this.ui.showRoleText(player.index, player.role_type);
+            }
         }
 
         ///按顺序设置行动类

@@ -165,6 +165,7 @@ class EndNightAction extends Action {
         console.log("=== 天亮了 ===");
         await this.game.gameData.toggleDayNight();
         const result = await this.game.gameData.getCurrentTime();
+        await this.game.ui.showDay(result.current_day);
         let death_list = "";
         for (const death of this.game.deaths) {
             death_list += `${death}号玩家死亡 \n`

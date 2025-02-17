@@ -106,13 +106,13 @@ class Ui {
         // 加载玩家小头像
         this.players_small = [];
         for (const i of playerIndices) {
-            this.players_small.push(await this.loadSprite(`player_${i}_small`, 4, true, 100+(playerIndices.indexOf(i))*420, 1800, 0.7));
+            this.players_small.push(await this.loadSprite(`player_${i}_small`, 4, true, 100+(playerIndices.indexOf(i))*420, 1700, 0.7));
         }
 
         //加载墓碑
         this.death = []
         for (let i = 1; i <= 9; i++) {
-            this.death.push(await this.loadSprite(`death`, 5, false, 100+(i-1)*420, 1800, 0.8));
+            this.death.push(await this.loadSprite(`death`, 5, false, 100+(i-1)*420, 1700, 0.8));
         }
 
         //加载数字
@@ -120,7 +120,7 @@ class Ui {
         for (let i = 1; i <= 9; i++) {
             let votes = [];
             for (let j = 1; j <= 9; j++) {
-                votes.push(await this.loadSprite(`${j}`, 4, false, 100+(i-1) * 420, 1600, 0.9));
+                votes.push(await this.loadSprite(`${j}`, 4, false, 100+(i-1) * 420, 1500, 0.9));
             }
             this.players_vote.push(votes);
         }
@@ -129,21 +129,21 @@ class Ui {
         this.player_model_logos= [];
         for (let i = 1; i <= 9; i++) {
             let logo_map = {};
-            logo_map["deepseek"] = await this.loadSprite(`logo_deepseek`, 6, false, 240+(i-1) * 420, 2020, 0.5);
-            logo_map["gpt"] = await this.loadSprite(`logo_gpt`, 6, false, 240+(i-1) * 420, 2020, 0.5);
-            logo_map["qwen"] = await this.loadSprite(`logo_qwen`, 6, false, 240+(i-1) * 420, 2020, 0.5);
-            logo_map["kimi"] = await this.loadSprite(`logo_kimi`, 6, false, 240+(i-1) * 420, 2020, 0.5);
-            logo_map["gemini"] = await this.loadSprite(`logo_gemini`, 6, false, 240+(i-1) * 420, 2020, 0.5);
-            logo_map["glm"] = await this.loadSprite(`logo_glm`, 6, false, 240+(i-1) * 420, 2020, 0.5);
-            logo_map["baichuan"] = await this.loadSprite(`logo_baichuan`, 6, false, 240+(i-1) * 420, 2020, 0.5);
-            logo_map["doubao"] = await this.loadSprite(`logo_doubao`, 6, false, 240+(i-1) * 420, 2020, 0.5);
-            logo_map["hunyuan"] = await this.loadSprite(`logo_hunyuan`, 6, false, 240+(i-1) * 420, 2020, 0.5);
+            logo_map["deepseek"] = await this.loadSprite(`logo_deepseek`, 6, false, 240+(i-1) * 420, 1920, 0.5);
+            logo_map["gpt"] = await this.loadSprite(`logo_gpt`, 6, false, 240+(i-1) * 420, 1920, 0.5);
+            logo_map["qwen"] = await this.loadSprite(`logo_qwen`, 6, false, 240+(i-1) * 420, 1920, 0.5);
+            logo_map["kimi"] = await this.loadSprite(`logo_kimi`, 6, false, 240+(i-1) * 420, 1920, 0.5);
+            logo_map["gemini"] = await this.loadSprite(`logo_gemini`, 6, false, 240+(i-1) * 420, 1920, 0.5);
+            logo_map["glm"] = await this.loadSprite(`logo_glm`, 6, false, 240+(i-1) * 420, 1920, 0.5);
+            logo_map["baichuan"] = await this.loadSprite(`logo_baichuan`, 6, false, 240+(i-1) * 420, 1920, 0.5);
+            logo_map["doubao"] = await this.loadSprite(`logo_doubao`, 6, false, 240+(i-1) * 420, 1920, 0.5);
+            logo_map["hunyuan"] = await this.loadSprite(`logo_hunyuan`, 6, false, 240+(i-1) * 420, 1920, 0.5);
             this.player_model_logos.push(logo_map);
         }
         //加载玩家编号
         this.players_number = [];
         for (let i = 1; i <= 9; i++) {
-            this.players_number.push(await this.loadSprite(`n${i}`, 7, true, 100+(i-1) * 420, 2010));
+            this.players_number.push(await this.loadSprite(`n${i}`, 7, true, 100+(i-1) * 420, 1910));
         }
 
         //加载文字spirit
@@ -153,6 +153,29 @@ class Ui {
         this.bg_black2 = await this.loadSprite('bg_black', 101, false, 0, 0); //黑色底图2，用来盖住整个游戏画面
         this.bigTextSpirit = this.initTextSpirit(102, 1920, 1080, 200, 200, '#ffffff', 'center');
         this.dayTextSpirit = this.initTextSpirit(102, 1920, 1080, 700, 700, '#ffffff', 'center');
+
+        //加载角色名称
+        this.playerRoleTexts = [];
+        for (let i = 1; i <= 9; i++) {
+            const role_text = await this.initTextSpirit(6, 180+(i-1) * 420, 2050, 64, 64, '#ffffff', 'left');
+            role_text.visible = false;
+            this.playerRoleTexts.push(role_text);
+        }
+
+        //显示当前第几天
+        this.dayTextSpirit = await this.initTextSpirit(6, 200, 100, 64, 64, '#ffffff', 'center');
+        this.dayTextSpirit.text = "第1天";
+        this.dayTextSpirit.visible = true;
+    }
+
+    async showDay(day) {
+        this.dayTextSpirit.text = `第${day}天`;
+        this.dayTextSpirit.visible = true;
+    }
+
+    async showRoleText(player_index, role) {
+        this.playerRoleTexts[player_index-1].text = role;
+        this.playerRoleTexts[player_index-1].visible = true;
     }
 
     async showModelLogo(player_index, model_name) {
