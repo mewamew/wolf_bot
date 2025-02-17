@@ -271,29 +271,42 @@ class KimiLlm(BaseLlm):
         self.client = OpenAI(api_key=self.api_key, base_url="https://api.moonshot.cn/v1", timeout=1800)
 
     def generate(self, message, chat_history=[]):
-        messages = []
-        if self.force_json:
-            messages = [{"role": "system", "content": "请严格使用JSON格式输出，确保返回的字符串是有效的JSON"}]
-        for msg in chat_history:
-            if msg["role"] == "bot":
-                messages.append({"role": "assistant", "content": msg["content"]})
-            else:
-                messages.append({"role": "user", "content": msg["content"]})
-        messages.append({"role": "user", "content": message})
+        max_retries = 3
+        retry_count = 0
+        while retry_count < max_retries:
+            try:
+                messages = []
+                if self.force_json:
+                    messages = [{"role": "system", "content": "请严格使用JSON格式输出，确保返回的字符串是有效的JSON"}]
+                for msg in chat_history:
+                    if msg["role"] == "bot":
+                        messages.append({"role": "assistant", "content": msg["content"]})
+                    else:
+                        messages.append({"role": "user", "content": msg["content"]})
+                messages.append({"role": "user", "content": message})
 
-        response = self.client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-            stream=True
-        )
+                response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=messages,
+                    stream=True
+                )
 
-        full_response = ""
-        for chunk in response:
-            content = chunk.choices[0].delta.content
-            if content is not None:
-                full_response += content
-                #print(content, end='', flush=True)
-        return full_response, None
+                full_response = ""
+                for chunk in response:
+                    content = chunk.choices[0].delta.content
+                    if content is not None:
+                        full_response += content
+                return full_response, None
+
+            except Exception as e:
+                retry_count += 1
+                if retry_count >= max_retries:
+                    print(f"在尝试{max_retries}次后仍然失败。错误: {str(e)}")
+                    return None, str(e)
+                print(f"发生错误: {str(e)}。正在进行第{retry_count}次重试...")
+                import time
+                time.sleep(retry_count * 2)  # 指数退避
+
 
 '''
 豆包API支持的模型:

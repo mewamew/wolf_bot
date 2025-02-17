@@ -3,4 +3,4 @@ __pycache__
 test.py
 config.json
 .DS_Store
-
+logs

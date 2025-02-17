@@ -15,7 +15,7 @@ import { sleep } from "./utils.js";
     const game = new Game(
         ui, 
         true, //是否显示角色名称
-        false //是否显示推理过程
+        true //是否显示推理过程
     );
     await game.start();
 
