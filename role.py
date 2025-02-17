@@ -70,13 +70,17 @@ class BaseRole:
             #    resp['thinking'] = reason
             return resp
 
-    def speak(self, extra_data=None ):
-        if extra_data is None:
-            extra_data = {}
-        resp_dict = self.handle_action('prompts/prompt_speak.yaml', extra_data)
-        if resp_dict:
-            self.game.history.add_event(SpeakEvent(self.player_index, resp_dict['speak']))
-            return resp_dict
+    def speak(self, content, extra_data=None):
+        if not content:
+            if extra_data is None:
+                extra_data={}
+            resp_dict = self.handle_action('prompts/prompt_speak.yaml', extra_data)
+            if resp_dict:
+                self.game.history.add_event(SpeakEvent(self.player_index, resp_dict['speak']))
+                return resp_dict
+        else:
+            self.game.history.add_event(SpeakEvent(self.player_index, content))
+            return {'thinking':'', 'speak': content}
 
     def vote(self, extra_data=None):
         """投票（决定谁是狼人）"""
@@ -174,9 +178,9 @@ class Seer(BaseRole):
         extra_data = self.make_extra_data()
         return super().last_words(death_reason, extra_data)
 
-    def speak(self):
+    def speak(self, content):
         extra_data = self.make_extra_data()
-        return super().speak(extra_data)
+        return super().speak(content, extra_data)
 
     def vote(self):
         extra_data = self.make_extra_data()
@@ -224,9 +228,9 @@ class Wolf(BaseRole):
         extra_data = self.make_extra_data()
         return super().vote(extra_data)
 
-    def speak(self):
+    def speak(self, content):
         extra_data = self.make_extra_data()
-        return super().speak(extra_data)
+        return super().speak(content, extra_data)
     
     
     def decide_kill(self, want_kill=None):
@@ -265,9 +269,9 @@ class Witch(BaseRole):
         extra_data = self.make_extra_data()
         return super().vote(extra_data)
 
-    def speak(self):
+    def speak(self, content):
         extra_data = self.make_extra_data()
-        return super().speak(extra_data)
+        return super().speak(content, extra_data)
     
     def decide_cure_or_poison(self, someone_will_be_killed):
         """决定是否要治疗或毒杀"""

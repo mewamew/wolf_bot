@@ -11,6 +11,10 @@ import copy
 class PlayerAction(BaseModel):
     player_idx:int
 
+class SpeakAction(BaseModel):
+    player_idx: int
+    content: str = None
+
 class LastWordsAction(BaseModel):
     player_idx: int
     death_reason: str
@@ -25,7 +29,6 @@ class DecideKillAction(BaseModel):
     
 class DecideCureOrPoisonAction(BaseModel):
     player_idx: int
-
 
 class PoisonAction(BaseModel):
     player_idx: int
@@ -204,10 +207,10 @@ def cure(action: PlayerAction):
     return {"message": "治疗成功"}
 
 @app.post("/speak")
-def speak(action: PlayerAction):
+def speak(action: SpeakAction):
     if recorder.is_loaded:
         return recorder.fetch()
-    result = game.speak(action.player_idx)
+    result = game.speak(action.player_idx, action.content)
     recorder.record(result)
     return result
 

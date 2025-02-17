@@ -227,13 +227,12 @@ class SpeakAction extends Action {
             
             if (player.is_human) {
                 // 人类玩家输入发言
-                const speak = await this.game.ui.showHumanInput("请输入你的发言");
-                
-                await this.game.ui.speak(`${this.player_idx}号 ${role}：`, speak);
+                const speak_content = await this.game.ui.showHumanInput("请输入你的发言");
+                await this.game.ui.speak(`${this.player_idx}号 ${role}：`, speak_content);
                 // 发送发言到后端
                 await this.game.gameData.speak({ 
                     player_idx: this.player_idx,
-                    speak: speak
+                    content: speak_content
                 });
             } else {
                 // AI玩家发言

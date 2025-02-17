@@ -9,10 +9,8 @@ import { sleep } from "./utils.js";
     await ui.preload();
     await ui.loadSprites();
 
-    const speak = await ui.showHumanInput("请输入你的发言");
-    console.log(speak)
 
-    /*
+    
     await ui.showBigText("游戏开始", 1000);
     await ui.showBigText("天黑了，请闭眼", 2000);
 
@@ -41,5 +39,4 @@ import { sleep } from "./utils.js";
             await sleep(100);
         }
     }
-    */
 })();
