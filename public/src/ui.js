@@ -166,6 +166,111 @@ class Ui {
         this.dayTextSpirit = await this.initTextSpirit(6, 200, 100, 64, 64, '#ffffff', 'center');
         this.dayTextSpirit.text = "第1天";
         this.dayTextSpirit.visible = true;
+
+        //创建人类输入控件
+        await this.createHumanInputContainer();
+    }
+
+    async createHumanInputContainer() {
+        // 添加人类玩家输入界面
+        this.humanInputContainer = new PIXI.Container();
+        this.humanInputContainer.zIndex = 200;  // 确保显示在最上层
+        
+        // 创建半透明黑色背景
+        const overlay = new PIXI.Graphics();
+        overlay.rect(0, 0, this.bgSize.width, this.bgSize.height).fill({color: 0x000000, alpha: 0.7});
+        this.humanInputContainer.addChild(overlay);
+        
+        // 创建提示文本
+        this.humanInputPrompt = this.initTextSpirit(201, 1920, 800, 80, 80, '#ffffff', 'center');
+        this.humanInputPrompt.text = "请输入你的发言";
+        this.humanInputContainer.addChild(this.humanInputPrompt);
+        
+        // 创建HTML输入框
+        const input = document.createElement('textarea');
+        input.style.position = 'absolute';
+        
+        // 原始画布尺寸
+        const originalWidth = 3840;
+        const originalHeight = 2160;
+        
+        // 输入框原始尺寸
+        const originalInputWidth = 1200;
+        const originalInputHeight = 300;
+        
+        // 计算缩放比例
+        const scaleX = this.bgSize.width / originalWidth;
+        const scaleY = this.bgSize.height / originalHeight;
+        
+        // 计算居中位置和缩放后的尺寸
+        const scaledWidth = originalInputWidth * scaleX;
+        const scaledHeight = originalInputHeight * scaleY;
+        const left = (this.bgSize.width - scaledWidth) / 2;
+        const top = (this.bgSize.height - scaledHeight) / 2;
+        
+        input.style.left = `${left}px`;
+        input.style.top = `${top}px`;
+        input.style.width = `${scaledWidth}px`;
+        input.style.height = `${scaledHeight}px`;
+        input.style.fontSize = `${50 * scaleY}px`;
+        input.style.fontFamily = '钉钉进步体';
+        input.style.padding = `${10 * scaleY}px`;
+        input.style.display = 'none';
+        input.style.resize = 'none';
+        document.body.appendChild(input);
+        this.humanInput = input;
+        
+        // 确认按钮
+        const confirmBtn = new PIXI.Graphics();
+        // 计算按钮位置和大小
+        const originalBtnWidth = 250;
+        const originalBtnHeight = 80;
+        const originalBtnSpacing = 60;
+
+        const scaledBtnWidth = originalBtnWidth * scaleX;
+        const scaledBtnHeight = originalBtnHeight * scaleY;
+        const scaledBtnSpacing = originalBtnSpacing * scaleY;
+
+        // 按钮水平居中
+        const btnX = left + (scaledWidth - scaledBtnWidth) / 2;
+        const btnY = top + scaledHeight + scaledBtnSpacing;
+
+        confirmBtn.roundRect(btnX, btnY, scaledBtnWidth, scaledBtnHeight, 5 * scaleX).fill({color: 0x4CAF50});
+        confirmBtn.interactive = true;
+        confirmBtn.buttonMode = true;
+        this.humanInputContainer.addChild(confirmBtn);
+    }
+
+    async showHumanInput(prompt) {
+        return new Promise((resolve) => {
+            this.humanInputPrompt.text = prompt || "请输入你的发言";
+            this.humanInputContainer.visible = true;
+            this.humanInput.style.display = 'block';
+            this.humanInput.value = '';
+            this.humanInput.focus();
+            
+            const onConfirm = () => {
+                const text = this.humanInput.value.trim();
+                if (text) {
+                    this.humanInputContainer.visible = false;
+                    this.humanInput.style.display = 'none';
+                    resolve(text);
+                }
+            };
+
+            // 添加Enter键确认
+            this.humanInput.onkeypress = (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    onConfirm();
+                }
+            };
+        });
+    }
+    
+    hideHumanInput() {
+        this.humanInputContainer.visible = false;
+        this.humanInput.style.display = 'none';
     }
 
     async showDay(day) {
@@ -352,20 +457,29 @@ class Ui {
         return { width, height, scale };
     }
 
-    initTextSpirit(zIndex, x, y, fontSize, lineHeight, color, align = 'left', strokeEnabled = true) {
+    initTextSpirit(zIndex, x, y, fontSize, lineHeight, color, align = 'left', strokeEnabled = true, need_scale=true) {
+        if (need_scale) {
+            fontSize *= this.bgSize.scale;
+            lineHeight *= this.bgSize.scale;
+        }
         const textStyle = new PIXI.TextStyle({
             fontFamily: '钉钉进步体',
-            fontSize: fontSize*this.bgSize.scale,
+            fontSize: fontSize,
             fill: color,
-            lineHeight: lineHeight*this.bgSize.scale,
+            lineHeight: lineHeight,
             stroke: strokeEnabled ? { color: '#000000', width: 2*this.bgSize.scale } : undefined
         });
         const textSpirit = new PIXI.Text({text:"", style:textStyle});
         if (align === 'center') {
             textSpirit.anchor.set(0.5, 0.5);
         }
-        textSpirit.x = x * this.bgSize.scale;
-        textSpirit.y = y * this.bgSize.scale;
+        if (need_scale) {
+            textSpirit.x = x * this.bgSize.scale;
+            textSpirit.y = y * this.bgSize.scale;
+        } else {
+            textSpirit.x = x;
+            textSpirit.y = y;
+        }
         textSpirit.zIndex = zIndex;
         textSpirit.visible = true;
         this.app.stage.addChild(textSpirit);
@@ -407,6 +521,7 @@ class Ui {
         });
         return result;
     }
+
 
 }
 

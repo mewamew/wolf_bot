@@ -14,6 +14,7 @@ class BaseRole:
         self.game = game
         self.model = BuildModel(model_name, api_key, force_json=True) 
 
+
     def __str__(self):
         return f"玩家编号: {self.player_index}, 角色类型: {self.role_type}"
     

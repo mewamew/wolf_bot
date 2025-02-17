@@ -130,7 +130,8 @@ class WerewolfGame:
                 "name": f"{player.player_index}号玩家",
                 "role_type": player.role_type,
                 "is_alive": player.is_alive,
-                "model": player.model.model_name
+                "model": player.model.model_name,
+                "is_human": True if player.model.model_name == "human" else False
             }
         return players
     

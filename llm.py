@@ -446,6 +446,13 @@ class SiliconReasoner(BaseLlm):
                 print(chunk.choices[0].delta.content, end='', flush=True)
         return content, None
 
+class HumanLlm(BaseLlm):
+    def __init__(self, model_name):
+        super().__init__(model_name)
+        pass
+    
+    def generate(self, message, chat_history=[]):
+        pass
 
 
 M302LLM_SUPPORTED_MODELS = [
@@ -479,5 +486,7 @@ def BuildModel(model_name, api_key, force_json=False):
         return DouBaoLlm(model_name, api_key, force_json)
     elif model_name in ["hunyuan-large", "hunyuan-turbo-latest"]:
         return HunyuanLlm(model_name, api_key, force_json)
+    elif model_name == "human":
+        return HumanLlm(model_name)
     else:
         raise ValueError("未知的模型名称:", model_name)

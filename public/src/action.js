@@ -1,5 +1,3 @@
-
-
 class Action {
     constructor(game) {
         this.game = game;
@@ -222,14 +220,30 @@ class SpeakAction extends Action {
 
     async do() {
         if (this.game.players[this.player_idx - 1].is_alive) {
-            const result = await this.game.gameData.speak({ player_idx: this.player_idx });
-            console.log(result);
-            const role = this.game.display_role ? this.game.players[this.player_idx - 1].role_type : "玩家";
+            const player = this.game.players[this.player_idx - 1];
+            const role = this.game.display_role ? player.role_type : "玩家";
+            
             await this.game.ui.showPlayer(this.player_idx);
-            if (this.game.display_thinking) {
-                await this.game.ui.speak(`${this.player_idx}号 ${role} 思考中：`, result.thinking, true);
+            
+            if (player.is_human) {
+                // 人类玩家输入发言
+                const speak = await this.game.ui.showHumanInput("请输入你的发言");
+                
+                await this.game.ui.speak(`${this.player_idx}号 ${role}：`, speak);
+                // 发送发言到后端
+                await this.game.gameData.speak({ 
+                    player_idx: this.player_idx,
+                    speak: speak
+                });
+            } else {
+                // AI玩家发言
+                const result = await this.game.gameData.speak({ player_idx: this.player_idx });
+                if (this.game.display_thinking) {
+                    await this.game.ui.speak(`${this.player_idx}号 ${role} 思考中：`, result.thinking, true);
+                }
+                await this.game.ui.speak(`${this.player_idx}号 ${role} 发言：`, result.speak);
             }
-            await this.game.ui.speak(`${this.player_idx}号 ${role} 发言：`, result.speak);
+            
             await this.game.ui.hidePlayer();
         }
         return false;
