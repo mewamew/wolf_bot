@@ -9,6 +9,8 @@ import { sleep } from "./utils.js";
     await ui.preload();
     await ui.loadSprites();
 
+    //await ui.showPlayer(1);
+    //await ui.showHumanInput("请输入你的名字");
 
     
     await ui.showBigText("游戏开始", 1000);
@@ -39,4 +41,6 @@ import { sleep } from "./utils.js";
             await sleep(100);
         }
     }
+
+
 })();

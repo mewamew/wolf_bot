@@ -266,7 +266,14 @@ class VoteAction extends Action {
         if (this.get_is_alive(this.player_idx)) {
             let human_vote_id = -100;
             if (this.get_is_human(this.player_idx)) {
-                human_vote_id = await this.game.ui.showHumanInput("请输入你的投票");
+                while (true) {
+                    const input = await this.game.ui.showHumanInput("请输入你的投票 1~9\n如果弃票输入-1 ");
+                    human_vote_id = parseInt(input);
+                    if (!isNaN(human_vote_id) && (human_vote_id >= -1 && human_vote_id <= 9)) {
+                        break;
+                    }
+                    alert("请输入正确的数字！");
+                }
             }
             const result = await this.game.gameData.vote({ player_idx: this.player_idx, vote_id: human_vote_id });
             console.log(result);

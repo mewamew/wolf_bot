@@ -174,17 +174,7 @@ class Ui {
     async createHumanInputContainer() {
         // 添加人类玩家输入界面
         this.humanInputContainer = new PIXI.Container();
-        this.humanInputContainer.zIndex = 200;  // 确保显示在最上层
-        
-        // 创建半透明黑色背景
-        const overlay = new PIXI.Graphics();
-        overlay.rect(0, 0, this.bgSize.width, this.bgSize.height).fill({color: 0x000000, alpha: 0.7});
-        this.humanInputContainer.addChild(overlay);
-        
-        // 创建提示文本
-        this.humanInputPrompt = this.initTextSpirit(201, 1920, 800, 80, 80, '#ffffff', 'center');
-        this.humanInputPrompt.text = "请输入你的发言";
-        this.humanInputContainer.addChild(this.humanInputPrompt);
+        this.humanInputContainer.zIndex = 300;  // 确保显示在最上层
         
         // 创建HTML输入框
         const input = document.createElement('textarea');
@@ -195,8 +185,8 @@ class Ui {
         const originalHeight = 2160;
         
         // 输入框原始尺寸
-        const originalInputWidth = 1400;
-        const originalInputHeight = 400;
+        const originalInputWidth = 2000;
+        const originalInputHeight = 500;
         
         // 计算缩放比例
         const scaleX = this.bgSize.width / originalWidth;
@@ -205,8 +195,8 @@ class Ui {
         // 计算居中位置和缩放后的尺寸
         const scaledWidth = originalInputWidth * scaleX;
         const scaledHeight = originalInputHeight * scaleY;
-        const left = (this.bgSize.width - scaledWidth) / 2;
-        const top = (this.bgSize.height - scaledHeight) / 2;
+        const left = (this.bgSize.width - scaledWidth*0.7) / 2;
+        const top = (this.bgSize.height - scaledHeight*0.8) / 2;
         
         input.style.left = `${left}px`;
         input.style.top = `${top}px`;
@@ -224,11 +214,11 @@ class Ui {
 
     async showHumanInput(prompt) {
         return new Promise((resolve) => {
-            this.humanInputPrompt.text = prompt || "请输入你的发言";
             this.humanInputContainer.visible = true;
             this.humanInput.style.display = 'block';
             this.humanInput.value = '';
             this.humanInput.focus();
+            this.humanInput.placeholder = prompt;
             
             const onConfirm = () => {
                 const text = this.humanInput.value.trim();
