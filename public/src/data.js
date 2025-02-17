@@ -71,10 +71,7 @@ class GameData {
         return this.fetchData('/last_words', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                player_idx: action.player_idx,
-                death_reason: action.death_reason
-            })
+            body: JSON.stringify(action)
         });
     }
 

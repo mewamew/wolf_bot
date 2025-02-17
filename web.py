@@ -21,6 +21,7 @@ class VoteAction(BaseModel):
 
 class LastWordsAction(BaseModel):
     player_idx: int
+    speak: str = None
     death_reason: str
     
 class AttackAction(BaseModel):
@@ -158,7 +159,7 @@ def get_current_time():
 def last_words(action: LastWordsAction):
     if recorder.is_loaded:
         return recorder.fetch()
-    result = game.last_words(action.player_idx, action.death_reason)
+    result = game.last_words(action.player_idx, action.speak, action.death_reason)
     recorder.record(result)
     return result
 

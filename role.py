@@ -99,15 +99,22 @@ class BaseRole:
             }
 
 
-    def last_words(self, death_reason, extra_data=None):
+    def last_words(self, speak, death_reason, extra_data=None):
         """发表遗言(死后)"""
+        resp_dict = {}
         if extra_data is None:
             extra_data={}
         extra_data['reason'] = death_reason
-        resp_dict = self.handle_action('prompts/prompt_lastword.yaml', extra_data)
+
+        if not speak:
+            resp_dict = self.handle_action('prompts/prompt_lastword.yaml', extra_data)
+        else:
+            resp_dict['speak'] = speak
+            resp_dict['thinking'] = ''
         if resp_dict:
             self.game.history.add_event(LastWordEvent(self.player_index, resp_dict['speak']))
-            return resp_dict
+        
+        return resp_dict
     
     def be_executed(self):
         '''被放逐'''
@@ -158,9 +165,9 @@ class Hunter(BaseRole):
         }
         return extra_data
 
-    def last_words(self, death_reason):
+    def last_words(self, speak, death_reason):
         extra_data = self.make_extra_data()
-        return super().last_words(death_reason, extra_data)
+        return super().last_words(speak, death_reason, extra_data)
 
     def revenge(self, death_reason):
         extra_data = {
@@ -180,10 +187,10 @@ class Seer(BaseRole):
             extra_data = {'你已经知道的玩家身份': self.divine_result}
         return extra_data
 
-    def last_words(self, death_reason):
+    def last_words(self, speak, death_reason):
         """发表遗言(死后)"""
         extra_data = self.make_extra_data()
-        return super().last_words(death_reason, extra_data)
+        return super().last_words(speak, death_reason, extra_data)
 
     def speak(self, content):
         extra_data = self.make_extra_data()
@@ -226,10 +233,10 @@ class Wolf(BaseRole):
         }
         return extra_data
 
-    def last_words(self, death_reason):
+    def last_words(self, speak, death_reason):
         """发表遗言(死后)"""
         extra_data = self.make_extra_data()
-        return super().last_words(death_reason, extra_data)
+        return super().last_words(speak, death_reason, extra_data)
 
     def vote(self, vote_id):
         extra_data = self.make_extra_data()
@@ -267,10 +274,10 @@ class Witch(BaseRole):
         }
         return extra_data
 
-    def last_words(self, death_reason):
+    def last_words(self, speak, death_reason):
         """发表遗言(死后)"""
         extra_data = self.make_extra_data()
-        return super().last_words(death_reason, extra_data)
+        return super().last_words(speak, death_reason, extra_data)
 
     def vote(self, vote_id):
         extra_data = self.make_extra_data()

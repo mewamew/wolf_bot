@@ -225,9 +225,9 @@ class WerewolfGame:
     def get_vote_result(self):
         return self.vote_result
 
-    def last_words(self, player_idx, death_reason):
+    def last_words(self, player_idx, speak, death_reason):
         # 最后发言            
-        resp = self.players[player_idx-1].last_words(death_reason)
+        resp = self.players[player_idx-1].last_words(speak, death_reason)
         return resp
 
     def revenge(self, player_idx, death_reason):

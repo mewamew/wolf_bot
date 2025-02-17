@@ -36,9 +36,15 @@ class Game {
         const result = await this.gameData.getCurrentTime();
         console.log(result);
         if (1 == result.current_day || (result.current_phase == "白天" && death_reason=="被投票处决")) {
+            let speak_content = "";
+            if (this.players[player_idx - 1].is_human) {
+                speak_content = await this.ui.showHumanInput(`请输入你的遗言`);
+            }
+
             //如果是第一夜，允许发表遗言
-            const result = await this.gameData.lastWords({ player_idx: player_idx, death_reason: death_reason });
+            const result = await this.gameData.lastWords({ player_idx: player_idx, speak: speak_content,  death_reason: death_reason });
             console.log(result);
+            
             await this.ui.showPlayer(player_idx);
             const role = this.display_role ? this.players[player_idx - 1].role_type : "玩家";
             if (this.display_thinking) {
