@@ -195,8 +195,15 @@ class Wolf(BaseRole):
     
 
     def make_extra_data(self):
+        wolves  = self.game.get_wolves()
+        wolves_list = []
+        for wolf in wolves:
+            if wolf["player_index"] == self.player_index:
+                continue
+            is_alive = "存活" if wolf["is_alive"] else "已死亡"
+            wolves_list.append(f"{wolf['player_index']}号玩家是狼人, 目前{is_alive}")
         extra_data = {
-            "狼人列表": self.game.get_wolves()
+            "你的狼人队友": wolves_list
         }
         return extra_data
 
