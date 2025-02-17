@@ -3,7 +3,7 @@ import { sleep } from "./utils.js";
 class Ui {
     constructor() {
         this.app = new PIXI.Application();
-        this.currentBg = null; // 新增属性，用于保存当前背景状态
+        this.currentBg = "night"; // 新增属性，用于保存当前背景状态
         this.bg = null; // 新增属性，用于保存背景精灵
     }
 
@@ -216,6 +216,7 @@ class Ui {
         if (prevBg === 'day') {
             this.showDayBackground();
         } else if (prevBg === 'night') {
+
             this.showNightBackground();
         }
     }

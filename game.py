@@ -34,7 +34,6 @@ class WerewolfGame:
 
         
     def initialize_roles(self):
-        # 随机初始化玩家列表
         roles = [Wolf, Wolf, Wolf, Seer, Witch, Hunter, Villager, Villager, Villager]
         
         # 角色类映射
@@ -63,6 +62,8 @@ class WerewolfGame:
                     raise ValueError(f"无效的角色 '{role_str}' 对玩家 {i}")
                 
                 roles[i] = role_class
+                
+
             
         # 使用配置文件中的模型和API key
         self.players = [

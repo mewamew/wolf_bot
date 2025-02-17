@@ -20,9 +20,11 @@ class DivineAction extends Action {
             console.log("== 预言家开始预言 ==");
             const role = this.game.show_role ? diviner.role_type : "玩家";
             const response = await this.game.gameData.divine({player_idx: diviner.index});
-            await this.game.ui.showPlayer(diviner.index);
+            
             if (this.game.show_thinking) {
+                await this.game.ui.showPlayer(diviner.index);
                 await this.game.ui.speak(`${diviner.index}号 ${role} 思考中`, response.thinking, true);
+                await this.game.ui.hidePlayer();
             }
         }
         return false;
@@ -51,8 +53,10 @@ class WolfAction extends Action {
                 }
                 const role = this.game.show_role ? wolf.role_type : "玩家";
                 if (this.game.show_thinking) {
-                    await this.game.ui.speak(`${wolf.index}号 ${role} 思考中：`, response.reason+killWho, true);
+                    await this.game.ui.speak(`${wolf.index}号 ${role} 思考中：`, response.reason, true);
                 }
+                await this.game.ui.speak(`${wolf.index}号 ${role} `, killWho);
+                await this.game.ui.hidePlayer();
             }
         }
 
@@ -76,8 +80,10 @@ class WolfAction extends Action {
                     }
                     const role = this.game.show_role ? wolf.role_type : "玩家";
                     if (this.game.show_thinking) {
-                        await this.game.ui.speak(`${wolf.index}号 ${role} 思考中：`, response.reason+killWho, true);
+                        await this.game.ui.speak(`${wolf.index}号 ${role} 思考中：`, response.reason, true);
                     }
+                    await this.game.ui.speak(`${wolf.index}号 ${role} `, killWho);
+                    await this.game.ui.hidePlayer();
                 }
             }
             /// 获取投票结果
@@ -127,8 +133,10 @@ class WitchAction extends Action {
             }
             const role = this.game.show_role ? witch.role_type : "玩家";
             if (this.game.show_thinking) {
-                await this.game.ui.speak(`${witch.index}号 ${role} 思考中：`, result.thinking + cureWho + poisonWho, true);
+                await this.game.ui.speak(`${witch.index}号 ${role} 思考中：`, result.thinking, true);
             }
+            await this.game.ui.speak(`${witch.index}号 ${role} `, cureWho + poisonWho);
+            await this.game.ui.hidePlayer();
             //根据女巫的决策结果进行操作
             if (1 != result.cure) {
                 //不治疗，玩家死
@@ -222,6 +230,7 @@ class SpeakAction extends Action {
                 await this.game.ui.speak(`${this.player_idx}号 ${role} 思考中：`, result.thinking, true);
             }
             await this.game.ui.speak(`${this.player_idx}号 ${role} 发言：`, result.speak);
+            await this.game.ui.hidePlayer();
         }
         return false;
     }
@@ -248,6 +257,7 @@ class VoteAction extends Action {
             } else { 
                 await this.game.ui.speak(`${this.player_idx}号 ${role} 投票：`, `我决定投票投给【${vote_id}】号玩家！`);
             } 
+            await this.game.ui.hidePlayer();
             ///更新投票结果
             const vote_result = await this.game.gameData.getVoteResult();
             console.log(vote_result);
@@ -325,6 +335,7 @@ class Game {
                 await this.ui.speak(`${player_idx}号 ${role} 思考中：`, result.thinking, true);
             }
             await this.ui.speak(`${player_idx}号 ${role} 发言：`, result.speak);
+            await this.ui.hidePlayer();
         }
         //如果是猎人，并且不是被毒杀，允许反击
         const  hunter = this.get_hunter();
