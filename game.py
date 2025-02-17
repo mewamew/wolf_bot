@@ -94,9 +94,10 @@ class WerewolfGame:
             print("随机排序玩家")
             random.shuffle(self.players)
             for i, player in enumerate(self.players):
-                print(f"{i+1}号玩家的角色是{player.role_type}, 模型使用{player.model.model_name}")
                 player.player_index = i + 1
                 
+        for player in self.players:
+            print(f"{player.player_index}号玩家的角色是{player.role_type}, 模型使用{player.model.model_name}")
         
         # 记录角色初始化信息到日志
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
