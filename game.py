@@ -36,7 +36,8 @@ class WerewolfGame:
             "display_thinking": True,
             "display_witch_action": True,
             "display_wolf_action": True,
-            "display_hunter_action": True
+            "display_hunter_action": True,
+            "display_divine_action": True
         }
         with open('config.json', 'r', encoding='utf-8') as f:
             config = json.load(f)
@@ -50,6 +51,8 @@ class WerewolfGame:
                 display_config["display_wolf_action"] = config["display_wolf_action"]
             if "display_hunter_action" in config:
                 display_config["display_hunter_action"] = config["display_hunter_action"]
+            if "display_divine_action" in config:
+                display_config["display_divine_action"] = config["display_divine_action"]
             
         return display_config
 

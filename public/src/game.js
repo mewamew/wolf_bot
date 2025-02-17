@@ -77,6 +77,7 @@ class Game {
         this.display_witch_action = result.display_witch_action;
         this.display_wolf_action = result.display_wolf_action;
         this.display_hunter_action = result.display_hunter_action;
+        this.display_divine_action = result.display_divine_action;
 
 
         ///获取玩家列表
@@ -147,7 +148,7 @@ class Game {
     }
 
     get_witch() {
-        return this.players.find(player => player.role_type === "女巫");
+        return this.players.find(player => player.role_type === "女巫"); 
     }
 
     get_hunter() {
