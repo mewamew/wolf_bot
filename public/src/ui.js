@@ -195,8 +195,8 @@ class Ui {
         const originalHeight = 2160;
         
         // 输入框原始尺寸
-        const originalInputWidth = 1200;
-        const originalInputHeight = 300;
+        const originalInputWidth = 1400;
+        const originalInputHeight = 400;
         
         // 计算缩放比例
         const scaleX = this.bgSize.width / originalWidth;
@@ -212,7 +212,7 @@ class Ui {
         input.style.top = `${top}px`;
         input.style.width = `${scaledWidth}px`;
         input.style.height = `${scaledHeight}px`;
-        input.style.fontSize = `${50 * scaleY}px`;
+        input.style.fontSize = `${64 * scaleY}px`;
         input.style.fontFamily = '钉钉进步体';
         input.style.padding = `${10 * scaleY}px`;
         input.style.display = 'none';
@@ -220,25 +220,6 @@ class Ui {
         document.body.appendChild(input);
         this.humanInput = input;
         
-        // 确认按钮
-        const confirmBtn = new PIXI.Graphics();
-        // 计算按钮位置和大小
-        const originalBtnWidth = 250;
-        const originalBtnHeight = 80;
-        const originalBtnSpacing = 60;
-
-        const scaledBtnWidth = originalBtnWidth * scaleX;
-        const scaledBtnHeight = originalBtnHeight * scaleY;
-        const scaledBtnSpacing = originalBtnSpacing * scaleY;
-
-        // 按钮水平居中
-        const btnX = left + (scaledWidth - scaledBtnWidth) / 2;
-        const btnY = top + scaledHeight + scaledBtnSpacing;
-
-        confirmBtn.roundRect(btnX, btnY, scaledBtnWidth, scaledBtnHeight, 5 * scaleX).fill({color: 0x4CAF50});
-        confirmBtn.interactive = true;
-        confirmBtn.buttonMode = true;
-        this.humanInputContainer.addChild(confirmBtn);
     }
 
     async showHumanInput(prompt) {

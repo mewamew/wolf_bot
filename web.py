@@ -15,6 +15,10 @@ class SpeakAction(BaseModel):
     player_idx: int
     content: str = None
 
+class VoteAction(BaseModel):
+    player_idx: int
+    vote_id: int = -100
+
 class LastWordsAction(BaseModel):
     player_idx: int
     death_reason: str
@@ -36,6 +40,7 @@ class PoisonAction(BaseModel):
 class RevengeAction(BaseModel):
     player_idx: int
     death_reason: str
+    
 
 class Recorder():
     def __init__(self, game):
@@ -216,10 +221,10 @@ def speak(action: SpeakAction):
 
 
 @app.post("/vote")
-def vote(action: PlayerAction):
+def vote(action: VoteAction):
     if recorder.is_loaded:
         return recorder.fetch()
-    result = game.vote(action.player_idx)
+    result = game.vote(action.player_idx, action.vote_id)
     recorder.record(result)
     return result
 

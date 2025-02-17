@@ -205,10 +205,11 @@ class WerewolfGame:
         resp = self.players[player_idx-1].speak(content)
         return resp
     
-    def vote(self, player_idx) -> int:
+    def vote(self, player_idx, vote_id) -> int:
         # 投票逻辑
-        result = self.players[player_idx-1].vote()
+        result = self.players[player_idx-1].vote(vote_id)
         vote_id = result["vote"]
+        
         if vote_id != -1:
             if vote_id in self.vote_result:
                 self.vote_result[vote_id] += 1
@@ -216,6 +217,7 @@ class WerewolfGame:
                 self.vote_result[vote_id] = 1
             result["vote_count"] = self.vote_result[vote_id]
         return result
+
     
     def reset_vote_result(self):
         self.vote_result = {}

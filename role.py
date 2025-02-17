@@ -82,15 +82,22 @@ class BaseRole:
             self.game.history.add_event(SpeakEvent(self.player_index, content))
             return {'thinking':'', 'speak': content}
 
-    def vote(self, extra_data=None):
-        """投票（决定谁是狼人）"""
-        if extra_data is None:
-            extra_data={}
-        resp_dict = self.handle_action('prompts/prompt_vote.yaml', extra_data)
-        if resp_dict:
-            vote_id = resp_dict['vote']
+    def vote(self, vote_id, extra_data=None):
+        if vote_id == -100:
+            if extra_data is None:
+                extra_data={}
+            resp_dict = self.handle_action('prompts/prompt_vote.yaml', extra_data)
+            if resp_dict:
+                vote_id = resp_dict['vote']
+                self.game.history.add_event(VoteEvent(self.player_index, vote_id))
+                return resp_dict
+        else:
             self.game.history.add_event(VoteEvent(self.player_index, vote_id))
-            return resp_dict
+            return {
+                'vote': vote_id,
+                'thinking': ''
+            }
+
 
     def last_words(self, death_reason, extra_data=None):
         """发表遗言(死后)"""
@@ -182,9 +189,9 @@ class Seer(BaseRole):
         extra_data = self.make_extra_data()
         return super().speak(content, extra_data)
 
-    def vote(self):
+    def vote(self, vote_id):
         extra_data = self.make_extra_data()
-        return super().vote(extra_data)
+        return super().vote(vote_id, extra_data)
         
     def divine(self):
         """决定查看谁的身份"""
@@ -224,9 +231,9 @@ class Wolf(BaseRole):
         extra_data = self.make_extra_data()
         return super().last_words(death_reason, extra_data)
 
-    def vote(self):
+    def vote(self, vote_id):
         extra_data = self.make_extra_data()
-        return super().vote(extra_data)
+        return super().vote(vote_id, extra_data)
 
     def speak(self, content):
         extra_data = self.make_extra_data()
@@ -265,9 +272,9 @@ class Witch(BaseRole):
         extra_data = self.make_extra_data()
         return super().last_words(death_reason, extra_data)
 
-    def vote(self):
+    def vote(self, vote_id):
         extra_data = self.make_extra_data()
-        return super().vote(extra_data)
+        return super().vote(vote_id, extra_data)
 
     def speak(self, content):
         extra_data = self.make_extra_data()
