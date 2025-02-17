@@ -78,9 +78,9 @@ def start_game():
     if recorder.is_loaded:
         return recorder.fetch()
 
-    game.start()
-    recorder.record({"message": "游戏开始"})
-    return {"message": "Game started"}
+    display_config = game.start()
+    recorder.record(display_config)
+    return display_config
 
 @app.get("/status")
 def get_status():

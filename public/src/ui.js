@@ -66,8 +66,8 @@ class Ui {
             { alias: 'logo_gemini', src: 'assets/logo_gemini.png' },
             { alias: 'logo_glm', src: 'assets/logo_glm.png' },
             { alias: 'logo_baichuan', src: 'assets/logo_baichuan.png' },
-            { alias: 'logo_doubao', src: 'assets/logo_doubao.png' }
-
+            { alias: 'logo_doubao', src: 'assets/logo_doubao.png' },
+            { alias: 'logo_hunyuan', src: 'assets/logo_hunyuan.png' }
         ];
         await PIXI.Assets.load(assets);
     }
@@ -137,6 +137,7 @@ class Ui {
             logo_map["glm"] = await this.loadSprite(`logo_glm`, 6, false, 240+(i-1) * 420, 2020, 0.5);
             logo_map["baichuan"] = await this.loadSprite(`logo_baichuan`, 6, false, 240+(i-1) * 420, 2020, 0.5);
             logo_map["doubao"] = await this.loadSprite(`logo_doubao`, 6, false, 240+(i-1) * 420, 2020, 0.5);
+            logo_map["hunyuan"] = await this.loadSprite(`logo_hunyuan`, 6, false, 240+(i-1) * 420, 2020, 0.5);
             this.player_model_logos.push(logo_map);
         }
         //加载玩家编号
@@ -155,6 +156,7 @@ class Ui {
     }
 
     async showModelLogo(player_index, model_name) {
+        console.log("显示模型logo", player_index, model_name);
         this.player_model_logos[player_index-1][model_name].visible = true;
     }
 

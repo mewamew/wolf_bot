@@ -31,6 +31,27 @@ class WerewolfGame:
         self.current_day = 1  # 游戏开始时,设置为第1天
         self.current_phase = "夜晚"  # 初始化当前阶段为夜晚
         self.initialize_roles()
+        display_config = {
+            "display_role": True,
+            "display_thinking": True,
+            "display_witch_action": True,
+            "display_wolf_action": True,
+            "display_hunter_action": True
+        }
+        with open('config.json', 'r', encoding='utf-8') as f:
+            config = json.load(f)
+            if "display_role" in config:
+                display_config["display_role"] = config["display_role"]
+            if "display_thinking" in config:
+                display_config["display_thinking"] = config["display_thinking"]
+            if "display_witch_action" in config:
+                display_config["display_witch_action"] = config["display_witch_action"]
+            if "display_wolf_action" in config:
+                display_config["display_wolf_action"] = config["display_wolf_action"]
+            if "display_hunter_action" in config:
+                display_config["display_hunter_action"] = config["display_hunter_action"]
+            
+        return display_config
 
         
     def initialize_roles(self):
