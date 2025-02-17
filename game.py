@@ -63,19 +63,25 @@ class WerewolfGame:
                 
                 roles[i] = role_class
                 
-
-            
         # 使用配置文件中的模型和API key
         self.players = [
             role(i + 1, config["players"][i]["model_name"], config["players"][i]["api_key"], self) 
             for i, role in enumerate(roles)
         ]
         
+        if config["randomize_position"]:
+            print("随机排序玩家")
+            random.shuffle(self.players)
+            for i, player in enumerate(self.players):
+                print(f"{i+1}号玩家的角色是{player.role_type}, 模型使用{player.model.model_name}")
+                player.player_index = i + 1
+                
+        
         # 记录角色初始化信息到日志
         with open(f"logs/log_{self.start_time}.txt", "a", encoding="utf-8") as f:
             f.write("=== 游戏角色初始化 ===\n")
             for i, player in enumerate(self.players):
-                f.write(f"{i+1}号玩家 - 角色：{player.role_type}，使用模型：{config['players'][i]['model_name']}\n")
+                f.write(f"{i+1}号玩家 - 角色：{player.role_type}，使用模型：{player.model.model_name}\n")
             f.write("==================\n")
         
         # 创建判决者

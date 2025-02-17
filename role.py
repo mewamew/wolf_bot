@@ -13,7 +13,6 @@ class BaseRole:
         self.is_alive = True
         self.game = game
         self.model = BuildModel(model_name, api_key, force_json=True) 
-        print_white(f"{self.player_index}号玩家的角色是{self.role_type}, 模型使用{self.model.model_name}")
 
     def __str__(self):
         return f"玩家编号: {self.player_index}, 角色类型: {self.role_type}"
