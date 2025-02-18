@@ -262,13 +262,6 @@ class Ui {
         this.player_model_logos[player_index-1][model_name].visible = true;
     }
 
-    async showDay(day) {
-        this.dayTextSpirit.text = `第${day}天`;
-        this.dayTextSpirit.visible = true;
-        await sleep(3000);
-        this.dayTextSpirit.visible = false;
-    }
-
     async showBigText(text, displayTime) {
         this.bigTextSpirit.text = text;
         this.bigTextSpirit.visible = true;

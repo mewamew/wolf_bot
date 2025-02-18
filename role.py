@@ -38,9 +38,17 @@ class BaseRole:
         return prompt_template
 
     def handle_action(self, prompt_file, extra_data=None, retry_count=0):
+        
+        
+        
         with open(prompt_file, 'r', encoding='utf-8') as file:
             prompt_template = yaml.safe_load(file)
             prompt_dict = self.prompt_preprocess(prompt_template)
+            # 获取公共规则
+            with open('prompts/prompt_game_rule.yaml', 'r', encoding='utf-8') as rule_file:
+                prompt_gamerule = yaml.safe_load(rule_file)
+                prompt_dict.update(prompt_gamerule)
+            
             if extra_data:
                 prompt_dict.update(extra_data)
             

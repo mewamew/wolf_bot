@@ -30,6 +30,7 @@ class WerewolfGame:
         self.wolf_want_kill = {}
         self.current_day = 1  # 游戏开始时,设置为第1天
         self.current_phase = "夜晚"  # 初始化当前阶段为夜晚
+        self.start_time = datetime.now().strftime("%Y%m%d%H%M")
         self.initialize_roles()
         display_config = {
             "display_role": True,
