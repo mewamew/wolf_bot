@@ -165,7 +165,7 @@ class Ui {
         //显示当前第几天
         this.littleDayTextSpirit = await this.initTextSpirit(6, 200, 100, 64, 64, '#ffffff', 'center');
         this.littleDayTextSpirit.visible = true;
-        this.littleDayTextSpirit.text = "--";
+        this.littleDayTextSpirit.text = "第1天";
 
         //创建人类输入控件
         await this.createHumanInputContainer();
