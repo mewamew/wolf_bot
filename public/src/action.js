@@ -327,11 +327,16 @@ class ExecuteAction extends Action {
 
         // 计算每个玩家获得的票数
         const voteCount = {};
+        let voteStr = "";
         for (const vote of vote_result.vote_result) {
             if (vote.vote_id !== -1) { // 排除弃票
                 voteCount[vote.vote_id] = (voteCount[vote.vote_id] || 0) + 1;
+                voteStr += `【${vote.player_idx}号玩家 -> ${vote.vote_id}号玩家】 \n`;
+            } else {
+                voteStr += `【${vote.player_idx}号玩家 -> 弃票】 \n`;
             }
         }
+        this.game.ui.speak("-- 投票结果 --", this.game.auto_play, voteStr);
 
         // 显示每个玩家获得的票数
         for (const [player_id, votes] of Object.entries(voteCount)) {

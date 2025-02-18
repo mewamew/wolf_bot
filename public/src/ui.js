@@ -147,7 +147,7 @@ class Ui {
         }
 
         //加载文字spirit
-        this.speakTextSpirit = this.initTextSpirit(5, 1600, 400, 80, 110, '#ffffff', 'left');
+        this.speakTextSpirit = this.initTextSpirit(5, 1600, 400, 70, 100, '#ffffff', 'left');
         this.titleTextSpirit = this.initTextSpirit(5, 1600, 200, 90, 90, '#00ffff', 'left');
 
         this.bg_black2 = await this.loadSprite('bg_black', 101, false, 0, 0); //黑色底图2，用来盖住整个游戏画面
@@ -298,7 +298,7 @@ class Ui {
             this.showDarkBackground();
         }
 
-        const groupSize = 8;
+        const groupSize = 9;
         for (let group = 0; group < Math.ceil(lines.length / groupSize); group++) {
             const start = group * groupSize;
             const end = start + groupSize;
