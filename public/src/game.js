@@ -107,7 +107,7 @@ class Game {
             if (player.model in model_name) {
                 this.ui.showModelLogo(player.index, model_name[player.model]);
             }
-            if (this.display_role) {
+            if (this.display_role || (this.display_wolf_action && player.role_type == "狼人")) {
                 this.ui.showRoleText(player.index, player.role_type);
             }
         }
