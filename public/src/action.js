@@ -310,8 +310,6 @@ class VoteAction extends Action {
                 } 
                 await this.game.ui.hidePlayer();
             }
-            
-
         }
         return false;
     }

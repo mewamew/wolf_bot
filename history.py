@@ -31,11 +31,22 @@ class VoteEvent(Event):
         return f'【{self.player_idx}号玩家】投票给: 【{self.target_idx}号玩家】'
 
 class ExecuteEvent(Event):
-    def __init__(self, player_idx):
+    def __init__(self, player_idx,  vote_result):
         super().__init__("execute", player_idx)
+        self.vote_result = []
+        for vote in vote_result:
+            vote_id = vote["vote_id"]
+            if vote_id == -1:
+                self.vote_result.append(f'【{vote["player_idx"]}号玩家】弃票.')
+            else:
+                self.vote_result.append(f'【{vote["player_idx"]}号玩家】 投票给 {vote["vote_id"]}号玩家.')
         
     def desc(self)->str:
-        return f'【{self.player_idx}号玩家】被处决'
+        desc_str = '白天投票结果:'
+        for vote in self.vote_result:
+            desc_str += f'{vote} '
+        desc_str += f'【{self.player_idx}号玩家】被处决.'
+        return desc_str
 
 class AttackEvent(Event):
     def __init__(self, player_idx):

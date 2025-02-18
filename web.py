@@ -292,7 +292,7 @@ def execute():
         }
     else:
         voted_out_player = voted_out[0]
-        game.execute(voted_out_player)
+        game.execute(voted_out_player, vote_results)
         recorder.record({"message": f"{players[voted_out_player]['name']} 被处决!", "executed_player": voted_out_player})
         return {
             "message": f"{players[voted_out_player]['name']} 被处决!",

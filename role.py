@@ -128,10 +128,10 @@ class BaseRole:
         
         return resp_dict
     
-    def be_executed(self):
+    def be_executed(self, vote_result):
         '''被放逐'''
         self.is_alive = False
-        self.game.history.add_event(ExecuteEvent(self.player_index))
+        self.game.history.add_event(ExecuteEvent(self.player_index, vote_result))
         with open(f'logs/result_{self.game.start_time}.txt', 'a', encoding='utf-8') as log_file:
             log_file.write(f"【{self.game.current_day} {self.game.current_phase}】 【{self.player_index}】号【{self.role_type}】被处决\n")
 

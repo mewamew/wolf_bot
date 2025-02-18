@@ -243,9 +243,9 @@ class WerewolfGame:
         resp = self.players[player_idx-1].revenge(death_reason)
         return resp
     
-    def execute(self, player_idx):
+    def execute(self, player_idx, vote_result):
         # 处决玩家
-        self.players[player_idx-1].be_executed()
+        self.players[player_idx-1].be_executed(vote_result)
 
     def reset_wolf_want_kill(self):
         self.wolf_want_kill = {}
