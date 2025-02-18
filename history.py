@@ -23,6 +23,7 @@ class VoteEvent(Event):
     def __init__(self, player_idx, target_idx):
         super().__init__("vote", player_idx)
         self.target_idx = target_idx
+        self.is_public = False
 
     def desc(self)->str:
         if self.target_idx == -1:

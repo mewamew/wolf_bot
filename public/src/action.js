@@ -289,28 +289,37 @@ class VoteAction extends Action {
                     alert("请输入正确的数字！");
                 }
             }
+            const role = this.get_role(this.player_idx);
+            await this.game.ui.showPlayer(this.player_idx); 
+            await this.game.ui.speak(`${this.player_idx}号 ${role} 投票：`, this.game.auto_play, "投票中");
             const result = await this.game.gameData.vote({ player_idx: this.player_idx, vote_id: human_vote_id });
             console.log(result);
-
-            const role = this.get_role(this.player_idx);
-            await this.game.ui.showPlayer(this.player_idx);
-            if (this.game.display_thinking) {
-                await this.game.ui.speak(`${this.player_idx}号 ${role} 思考中：`, this.game.auto_play,result.thinking, true);
-            }
-            const vote_id = result.vote;
-            if (vote_id == -1) {
-                await this.game.ui.speak(`${this.player_idx}号 ${role} 投票：`, this.game.auto_play, "我决定不投票！");
-            } else { 
-                await this.game.ui.speak(`${this.player_idx}号 ${role} 投票：`, this.game.auto_play, `我决定投票投给【${vote_id}】号玩家！`);
-            } 
             await this.game.ui.hidePlayer();
-            ///更新投票结果
-            const vote_result = await this.game.gameData.getVoteResult();
-            console.log(vote_result);
+            await this.game.ui.hideSpeak();
+
+            if (this.game.display_vote_action) {
+                await this.game.ui.showPlayer(this.player_idx);
+                if (this.game.display_thinking) {
+                    await this.game.ui.speak(`${this.player_idx}号 ${role} 思考中：`, this.game.auto_play,result.thinking, true);
+                }
+                const vote_id = result.vote;
+                if (vote_id == -1) {
+                    await this.game.ui.speak(`${this.player_idx}号 ${role} 投票：`, this.game.auto_play, "我决定不投票！");
+                } else { 
+                    await this.game.ui.speak(`${this.player_idx}号 ${role} 投票：`, this.game.auto_play, `我决定投票投给【${vote_id}】号玩家！`);
+                } 
+                await this.game.ui.hidePlayer();
+            }
             
-            // 遍历投票结果字典并显示
-            for (const [player_idx, votes] of Object.entries(vote_result.vote_result)) {
-                await this.game.ui.showVote(player_idx, votes);
+            if (this.game.display_vote_action) {
+                ///更新投票结果
+                const vote_result = await this.game.gameData.getVoteResult();
+                console.log(vote_result);
+
+                // 遍历投票结果字典并显示
+                for (const [player_idx, votes] of Object.entries(vote_result.vote_result)) {
+                    await this.game.ui.showVote(player_idx, votes);
+                }
             }
         }
         return false;
@@ -323,6 +332,15 @@ class ExecuteAction extends Action {
     }
 
     async do() {
+        ///更新投票结果
+        const vote_result = await this.game.gameData.getVoteResult();
+        console.log(vote_result);
+
+        // 遍历投票结果字典并显示
+        for (const [player_idx, votes] of Object.entries(vote_result.vote_result)) {
+            await this.game.ui.showVote(player_idx, votes);
+        }
+
         //处决接口
         const result = await this.game.gameData.execute();
         console.log(result);

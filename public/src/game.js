@@ -24,6 +24,7 @@ class Game {
         this.display_wolf_action = true;
         this.display_hunter_action = true;
         this.display_divine_action = true;
+        this.display_vote_action = true;
         this.auto_play = true;
     }
     clear_deaths() {
@@ -80,6 +81,7 @@ class Game {
         this.display_wolf_action = result.display_wolf_action;
         this.display_hunter_action = result.display_hunter_action;
         this.display_divine_action = result.display_divine_action;
+        this.display_vote_action = result.display_vote_action;
         this.auto_play = result.auto_play;
 
 

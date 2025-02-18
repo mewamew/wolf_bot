@@ -38,6 +38,7 @@ class WerewolfGame:
             "display_wolf_action": True,
             "display_hunter_action": True,
             "display_divine_action": True,
+            "display_vote_action": True,
             "auto_play": True
         }
         with open('config.json', 'r', encoding='utf-8') as f:
@@ -54,10 +55,11 @@ class WerewolfGame:
                 display_config["display_hunter_action"] = config["display_hunter_action"]
             if "display_divine_action" in config:
                 display_config["display_divine_action"] = config["display_divine_action"]
+            if "display_vote_action" in config:
+                display_config["display_vote_action"] = config["display_vote_action"]
             if "auto_play" in config:
                 display_config["auto_play"] = config["auto_play"]
         
-        print("!!!!! display_config: ", display_config)
         return display_config
 
         

@@ -86,7 +86,9 @@ def default():
 @app.get("/start")
 def start_game():
     if recorder.is_loaded:
-        return recorder.fetch()
+        display_config = recorder.fetch()
+        display_config["auto_play"] = False
+        return display_config
 
     display_config = game.start()
     recorder.record(display_config)
