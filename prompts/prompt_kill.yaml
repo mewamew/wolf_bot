@@ -21,3 +21,4 @@ output_format: |
       # 如果 kill: -1 表示不杀
   }
 instructions: "请你根据当前情况选择杀掉一名玩家。请确保输出包含 'reason' 和 'kill' 两个字段"
+required_fields: ["reason", "kill"]

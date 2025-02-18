@@ -50,9 +50,9 @@ class Game {
             await this.ui.showPlayer(player_idx);
             const role = this.display_role ? this.players[player_idx - 1].role_type : "玩家";
             if (this.display_thinking) {
-                await this.ui.speak(`${player_idx}号 ${role} 思考中：`, result.thinking, true);
+                await this.ui.speak(`${player_idx}号 ${role} 思考中：`, this.game.auto_play,result.thinking, true);
             }
-            await this.ui.speak(`${player_idx}号 ${role} 发言：`, result.speak);
+            await this.ui.speak(`${player_idx}号 ${role} 发表遗言：`, this.game.auto_play,result.speak);
             await this.ui.hidePlayer();
         }
         //如果是猎人，并且不是被毒杀，允许反击

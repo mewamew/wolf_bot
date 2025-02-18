@@ -279,7 +279,7 @@ class Ui {
     }
 
     //显示说话内容
-    async speak(title, text, is_dark_bg=false) {
+    async speak(title,  is_auto_play,text, is_dark_bg=false) {
         const lines = this.formatText(text);
         //console.log("说话内容：");
         //console.log(lines);
@@ -303,14 +303,16 @@ class Ui {
             const start = group * groupSize;
             const end = start + groupSize;
             const currentLines = lines.slice(start, end);
-            currentLines.push("<按回车键继续>")
+            if (!is_auto_play) {
+                currentLines.push("<按回车键继续>")
+            }
             //console.log("---分组说话：----");
             //console.log(currentLines);
 
             this.speakTextSpirit.text = "";
             await this.typeWriterEffect(currentLines.join('\n'), this.speakTextSpirit);
             
-            if (this.auto_play) {
+            if (is_auto_play) {
                 await sleep(1000);
                 // 等待用户按回车键继续
             } else {

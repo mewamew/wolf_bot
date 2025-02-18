@@ -33,7 +33,7 @@ class DivineAction extends Action {
             
             if (this.game.display_thinking && this.game.display_divine_action) {
                 await this.game.ui.showPlayer(diviner.index);
-                await this.game.ui.speak(`${diviner.index}号 ${role} 思考中`, response.thinking, true);
+                await this.game.ui.speak(`${diviner.index}号 ${role} 思考中`, this.game.auto_play,response.thinking, true);
                 await this.game.ui.hidePlayer();
             }
         }
@@ -70,9 +70,9 @@ class WolfAction extends Action {
         const role = this.get_role(wolf.index);
         if (this.game.display_wolf_action) {
             if (this.game.display_thinking) {
-                await this.game.ui.speak(`${wolf.index}号 ${role} 思考中：`, response.reason, true);
+                await this.game.ui.speak(`${wolf.index}号 ${role} 思考中：`, this.game.auto_play,response.reason, true);
             }
-            await this.game.ui.speak(`${wolf.index}号 ${role} `, killWho);
+            await this.game.ui.speak(`${wolf.index}号 ${role} `, this.game.auto_play, killWho);
             await this.game.ui.hidePlayer();
         }
     }
@@ -156,9 +156,9 @@ class WitchAction extends Action {
             const role = this.get_role(witch.index);
             if (this.game.display_witch_action) {
                 if (this.game.display_thinking) {
-                    await this.game.ui.speak(`${witch.index}号 ${role} 思考中：`, result.thinking, true);
+                    await this.game.ui.speak(`${witch.index}号 ${role} 思考中：`,this.game.auto_play, result.thinking, true);
                 }
-                await this.game.ui.speak(`${witch.index}号 ${role} `, cureWho + poisonWho);
+                await this.game.ui.speak(`${witch.index}号 ${role} `, this.game.auto_play,cureWho + poisonWho);
                 await this.game.ui.hidePlayer();
             }
             //根据女巫的决策结果进行操作
@@ -261,9 +261,9 @@ class SpeakAction extends Action {
                 content: speak_content
             });
             if (this.game.display_thinking && result.thinking != "") {
-                await this.game.ui.speak(`${this.player_idx}号 ${role} 思考中：`, result.thinking, true);
+                await this.game.ui.speak(`${this.player_idx}号 ${role} 思考中：`,this.game.auto_play, result.thinking, true);
             }
-            await this.game.ui.speak(`${this.player_idx}号 ${role} 发言：`, result.speak);
+            await this.game.ui.speak(`${this.player_idx}号 ${role} 发言：`, this.game.auto_play,result.speak);
             await this.game.ui.hidePlayer();
         }
         return false;
@@ -295,13 +295,13 @@ class VoteAction extends Action {
             const role = this.get_role(this.player_idx);
             await this.game.ui.showPlayer(this.player_idx);
             if (this.game.display_thinking) {
-                await this.game.ui.speak(`${this.player_idx}号 ${role} 思考中：`, result.thinking, true);
+                await this.game.ui.speak(`${this.player_idx}号 ${role} 思考中：`, this.game.auto_play,result.thinking, true);
             }
             const vote_id = result.vote;
             if (vote_id == -1) {
-                await this.game.ui.speak(`${this.player_idx}号 ${role} 投票：`, "我决定不投票！");
+                await this.game.ui.speak(`${this.player_idx}号 ${role} 投票：`, this.game.auto_play, "我决定不投票！");
             } else { 
-                await this.game.ui.speak(`${this.player_idx}号 ${role} 投票：`, `我决定投票投给【${vote_id}】号玩家！`);
+                await this.game.ui.speak(`${this.player_idx}号 ${role} 投票：`, this.game.auto_play, `我决定投票投给【${vote_id}】号玩家！`);
             } 
             await this.game.ui.hidePlayer();
             ///更新投票结果

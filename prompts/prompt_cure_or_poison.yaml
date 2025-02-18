@@ -15,3 +15,4 @@ output_format: |
       # 对于 poison: -1 表示不要毒杀这名玩家, 1,2,3,4,5,6,7,8,9 表示要毒杀几号玩家
   }
 instructions: "请你根据当前情况选择如何使用解药或者毒药。请确保输出包含 'thinking' ,'cure','poison' 三个字段。"
+required_fields: ["thinking", "cure", "poison"]

@@ -55,6 +55,18 @@ class BaseRole:
                     return self.handle_action(prompt_file, extra_data, retry_count+1)
                 return None
 
+            # 检查响应中是否包含必要字段
+            required_fields = prompt_template.get('required_fields', [])
+            if required_fields:
+                missing_fields = [field for field in required_fields if field not in resp]
+                if missing_fields:
+                    self.error(f"响应缺少必要字段: {missing_fields}", resp)
+                    if retry_count < 10:
+                        print_red("重新发起请求")
+                        time.sleep(10)
+                        return self.handle_action(prompt_file, extra_data, retry_count+1)
+                    return None
+
             # 日志记录保持原样
             with open(f'logs/llm_{self.game.start_time}.txt', 'a', encoding='utf-8') as log_file:
                 log_file.write(f"--- {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---\n")
@@ -303,7 +315,3 @@ class Witch(BaseRole):
             self.cured_someone = someone_will_be_killed if resp_dict['cure'] != -1 else self.cured_someone
             self.poisoned_someone = resp_dict['poison'] if resp_dict['poison'] != -1 else self.poisoned_someone
             return resp_dict
-
-
-
-    

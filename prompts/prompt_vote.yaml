@@ -11,3 +11,4 @@ output_format: |
       # 对于 vote: -1 表示弃票, 否则1,2,3,4,5,6,7,8,9表示要放逐的玩家
   }
 instructions: "请你根据当前情况和你身份进行投票。请确保输出包含 'thinking' 和 'vote' 两个字段。"
+required_fields: ["thinking", "vote"]

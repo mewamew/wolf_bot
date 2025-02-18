@@ -56,7 +56,8 @@ class WerewolfGame:
                 display_config["display_divine_action"] = config["display_divine_action"]
             if "auto_play" in config:
                 display_config["auto_play"] = config["auto_play"]
-            
+        
+        print("!!!!! display_config: ", display_config)
         return display_config
 
         

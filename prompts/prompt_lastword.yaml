@@ -8,3 +8,4 @@ output_format: |
     "speak": "发言"
   }
 instructions: "请你根据当前情况和你身份进行最后的发言。请确保输出包含 'thinking' 和 'speak' 两个字段。"
+required_fields: ["thinking", "speak"]
