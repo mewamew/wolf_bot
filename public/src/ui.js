@@ -163,9 +163,9 @@ class Ui {
         }
 
         //显示当前第几天
-        this.dayTextSpirit = await this.initTextSpirit(6, 200, 100, 64, 64, '#ffffff', 'center');
-        this.dayTextSpirit.text = "第1天";
-        this.dayTextSpirit.visible = true;
+        this.littleDayTextSpirit = await this.initTextSpirit(6, 200, 100, 64, 64, '#ffffff', 'center');
+        this.littleDayTextSpirit.visible = true;
+        this.littleDayTextSpirit.text = "--";
 
         //创建人类输入控件
         await this.createHumanInputContainer();
@@ -247,6 +247,9 @@ class Ui {
     async showDay(day) {
         this.dayTextSpirit.text = `第${day}天`;
         this.dayTextSpirit.visible = true;
+        await sleep(3000);
+        this.dayTextSpirit.visible = false;
+        this.littleDayTextSpirit.text= `第${day}天`;
     }
 
     async showRoleText(player_index, role) {

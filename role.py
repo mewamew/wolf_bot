@@ -196,7 +196,7 @@ class Seer(BaseRole):
     def make_extra_data(self):
         extra_data = None
         if len(self.divine_result) > 0:
-            extra_data = {'你已经知道的玩家身份': self.divine_result}
+            extra_data = {'你已经掌握的信息': self.divine_result}
         return extra_data
 
     def last_words(self, speak, death_reason):
@@ -218,11 +218,9 @@ class Seer(BaseRole):
         resp_dict = self.handle_action('prompts/prompt_divine.yaml', extra_data)
         if resp_dict:
             divine_id = resp_dict['divine']
+            is_good_man = "好人" if self.game.players[divine_id-1].role_type != "狼人" else "狼人"
             self.divine_result.append(
-                {
-                    "player_index": f"{divine_id}号玩家",
-                    "role_type": self.game.players[divine_id-1].role_type
-                }
+                f"【{divine_id}号玩家】是 {is_good_man}."
             )
             return resp_dict
     
