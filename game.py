@@ -105,10 +105,12 @@ class WerewolfGame:
             random.shuffle(self.players)
             for i, player in enumerate(self.players):
                 player.player_index = i + 1
-                
-        for player in self.players:
-            print(f"{player.player_index}号玩家的角色是{player.role_type}, 模型使用{player.model.model_name}")
         
+        with open(f'logs/result_{self.start_time}.txt', 'a', encoding='utf-8') as log_file:
+            for player in self.players:
+                log_file.write(f"{player.player_index}号玩家的角色是{player.role_type}, 模型使用{player.model.model_name}\n")
+                print(f"{player.player_index}号玩家的角色是{player.role_type}, 模型使用{player.model.model_name}")
+            
         # 创建判决者
         self.judge = Judge(self, config["judge"]["model_name"], config["judge"]["api_key"])
 
