@@ -21,26 +21,7 @@ import { sleep } from "./utils.js";
     await game.start();
 
     let is_end = false;
-    let isPaused = false;
-
-    document.addEventListener('keydown', (event) => {
-        if (event.code === 'Space') {
-            isPaused = !isPaused;
-            if(isPaused) {
-                console.log("暂停");
-            } else {
-                console.log("恢复");
-            }
-        }
-    });
-
     while (!is_end) {
-        if (!isPaused) {
-            is_end = await game.run();
-        } else {
-            await sleep(100);
-        }
+        is_end = await game.run();
     }
-
-
 })();

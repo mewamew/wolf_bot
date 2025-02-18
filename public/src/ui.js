@@ -298,17 +298,32 @@ class Ui {
             this.showDarkBackground();
         }
 
-        const groupSize = 9;
+        const groupSize = 8;
         for (let group = 0; group < Math.ceil(lines.length / groupSize); group++) {
             const start = group * groupSize;
             const end = start + groupSize;
             const currentLines = lines.slice(start, end);
+            currentLines.push("<按回车键继续>")
             //console.log("---分组说话：----");
             //console.log(currentLines);
 
             this.speakTextSpirit.text = "";
             await this.typeWriterEffect(currentLines.join('\n'), this.speakTextSpirit);
-            await sleep(1000);
+            
+            if (this.auto_play) {
+                await sleep(1000);
+                // 等待用户按回车键继续
+            } else {
+                await new Promise(resolve => {
+                    const keyHandler = (e) => {
+                        if (e.key === 'Enter') {
+                            document.removeEventListener('keypress', keyHandler);
+                            resolve();
+                        }
+                    };
+                    document.addEventListener('keypress', keyHandler);
+                });
+            }
         }
         //停留1秒
         await sleep(2000);
