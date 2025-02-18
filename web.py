@@ -261,12 +261,24 @@ def execute():
     if recorder.is_loaded:
         return recorder.fetch()
     players = game.get_players()
-    votes = game.get_vote_result()
+    vote_results = game.get_vote_result()
 
-    if not votes:
+    if not vote_results:
         recorder.record({"message": "没有投票结果", "executed_player": -1})
         return {
             "message": "没有投票结果",
+            "executed_player": -1
+        }
+
+    # 统计每个玩家获得的票数
+    votes = {}
+    for vote in vote_results:
+        if vote["vote_id"] != -1:  # 排除弃票
+            votes[vote["vote_id"]] = votes.get(vote["vote_id"], 0) + 1
+
+    if not votes:  # 如果所有人都弃票
+        return {
+            "message": "所有人都弃票了",
             "executed_player": -1
         }
 

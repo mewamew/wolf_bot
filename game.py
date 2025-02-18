@@ -13,7 +13,7 @@ class WerewolfGame:
         self.history = None # 存储游戏的历史记录
         self.current_day = 1
         self.current_phase = "夜晚" 
-        self.vote_result = {}
+        self.vote_result = []
         self.wolf_want_kill = {}
         self.start_time = datetime.now().strftime("%Y%m%d%H%M")
 
@@ -26,7 +26,7 @@ class WerewolfGame:
 
     def start(self):
         self.history = History()
-        self.vote_result = {}
+        self.vote_result = []
         self.wolf_want_kill = {}
         self.current_day = 1  # 游戏开始时,设置为第1天
         self.current_phase = "夜晚"  # 初始化当前阶段为夜晚
@@ -219,17 +219,17 @@ class WerewolfGame:
         result = self.players[player_idx-1].vote(vote_id)
         vote_id = result["vote"]
         
-        if vote_id != -1:
-            if vote_id in self.vote_result:
-                self.vote_result[vote_id] += 1
-            else:
-                self.vote_result[vote_id] = 1
-            result["vote_count"] = self.vote_result[vote_id]
+        #记录投票结果
+        self.vote_result.append({
+                "player_idx": player_idx,
+                "vote_id": vote_id
+            })
+        
         return result
 
     
     def reset_vote_result(self):
-        self.vote_result = {}
+        self.vote_result = []
     
     def get_vote_result(self):
         return self.vote_result

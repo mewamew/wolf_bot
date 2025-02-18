@@ -311,16 +311,7 @@ class VoteAction extends Action {
                 await this.game.ui.hidePlayer();
             }
             
-            if (this.game.display_vote_action) {
-                ///更新投票结果
-                const vote_result = await this.game.gameData.getVoteResult();
-                console.log(vote_result);
 
-                // 遍历投票结果字典并显示
-                for (const [player_idx, votes] of Object.entries(vote_result.vote_result)) {
-                    await this.game.ui.showVote(player_idx, votes);
-                }
-            }
         }
         return false;
     }
@@ -336,9 +327,17 @@ class ExecuteAction extends Action {
         const vote_result = await this.game.gameData.getVoteResult();
         console.log(vote_result);
 
-        // 遍历投票结果字典并显示
-        for (const [player_idx, votes] of Object.entries(vote_result.vote_result)) {
-            await this.game.ui.showVote(player_idx, votes);
+        // 计算每个玩家获得的票数
+        const voteCount = {};
+        for (const vote of vote_result.vote_result) {
+            if (vote.vote_id !== -1) { // 排除弃票
+                voteCount[vote.vote_id] = (voteCount[vote.vote_id] || 0) + 1;
+            }
+        }
+
+        // 显示每个玩家获得的票数
+        for (const [player_id, votes] of Object.entries(voteCount)) {
+            await this.game.ui.showVote(player_id, votes);
         }
 
         //处决接口
