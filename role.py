@@ -16,7 +16,7 @@ class BaseRole:
 
 
     def __str__(self):
-        return f"玩家编号: {self.player_index}, 角色类型: {self.role_type}"
+        return f"你的玩家编号: {self.player_index}, 角色类型: {self.role_type}"
     
     def error(self, e, resp):
         print("\033[91m发生错误:\033[0m")
@@ -32,7 +32,7 @@ class BaseRole:
     def prompt_preprocess(self, prompt_template):
         prompt_template['角色'] = f"你是一名{self.role_type}"
         prompt_template['第几天'] = f'当前是第{self.game.current_day}天'
-        prompt_template['玩家编号'] = f"你是{self.player_index}号玩家"
+        prompt_template['你的玩家编号'] = f"你是{self.player_index}号玩家"
         prompt_template['事件'] = self.game.history.get_history()
         prompt_template['玩家状态'] = self.get_players_state()
         return prompt_template
