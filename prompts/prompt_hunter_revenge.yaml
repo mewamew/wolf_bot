@@ -5,11 +5,11 @@
 第几天: "第1天"
 玩家状态: ["动态填充"]
 事件: ["动态填充"]
+instructions: "请你根据当前情况和你身份进行最后的发言。请确保输出包含 'thinking','attack' 两个字段。"
 output_format: |
   {
     "thinking": "思考",
     "attack": -1
       # 对于 attack: 1,2,3,4,5,6 分别代表攻击的目标. -1 代表不发动技能
   }
-instructions: "请你根据当前情况和你身份进行最后的发言。请确保输出包含 'thinking','attack' 两个字段。"
 required_fields: ["thinking", "attack"]
