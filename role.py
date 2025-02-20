@@ -49,6 +49,19 @@ class BaseRole:
                 prompt_gamerule = yaml.safe_load(rule_file)
                 prompt_dict.update(prompt_gamerule)
             
+            # 根据角色阵营加载策略规则
+            if self.role_type == '狼人':
+                strategy_file = 'prompts/prompt_wolf_strategy.yaml'
+            elif self.role_type == '村民':
+                strategy_file = 'prompts/prompt_villager_strategy.yaml'
+            else:
+                # 神职角色（预言家、女巫、猎人）使用神职策略
+                strategy_file = 'prompts/prompt_god_strategy.yaml'
+                
+            with open(strategy_file, 'r', encoding='utf-8') as strategy_file:
+                strategy_rules = yaml.safe_load(strategy_file)
+                prompt_dict.update(strategy_rules)
+            
             if extra_data:
                 prompt_dict.update(extra_data)
             
