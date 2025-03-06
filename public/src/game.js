@@ -25,6 +25,7 @@ class Game {
         this.display_hunter_action = true;
         this.display_divine_action = true;
         this.display_vote_action = true;
+        this.display_model = true;
         this.auto_play = true;
     }
     clear_deaths() {
@@ -82,6 +83,7 @@ class Game {
         this.display_hunter_action = result.display_hunter_action;
         this.display_divine_action = result.display_divine_action;
         this.display_vote_action = result.display_vote_action;
+        this.display_model = result.display_model;
         this.auto_play = result.auto_play;
 
 
@@ -106,7 +108,7 @@ class Game {
             "hunyuan-large":"hunyuan"
         };
         for (const player of this.players) {
-            if (player.model in model_name) {
+            if (player.model in model_name && this.display_model) {
                 this.ui.showModelLogo(player.index, model_name[player.model]);
             }
             if (this.display_role || (this.display_wolf_action && player.role_type == "狼人")) {

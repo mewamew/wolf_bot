@@ -5,6 +5,7 @@ import yaml
 import json
 import time
 from datetime import datetime
+import random
 
 class BaseRole:
     def __init__(self, player_index, role_type, model_name, api_key, game):
@@ -35,12 +36,10 @@ class BaseRole:
         prompt_template['你的玩家编号'] = f"你是{self.player_index}号玩家"
         prompt_template['事件'] = self.game.history.get_history()
         prompt_template['玩家状态'] = self.get_players_state()
+        prompt_template['随机数种子'] = int(time.time() * 1000) + random.randint(1, 1000)
         return prompt_template
 
     def handle_action(self, prompt_file, extra_data=None, retry_count=0):
-        
-        
-        
         with open(prompt_file, 'r', encoding='utf-8') as file:
             prompt_template = yaml.safe_load(file)
             prompt_dict = self.prompt_preprocess(prompt_template)
@@ -52,15 +51,17 @@ class BaseRole:
             # 根据角色阵营加载策略规则
             if self.role_type == '狼人':
                 strategy_file = 'prompts/prompt_wolf_strategy.yaml'
+                with open(strategy_file, 'r', encoding='utf-8') as strategy_file:
+                    strategy_rules = yaml.safe_load(strategy_file)
+                    prompt_dict.update(strategy_rules)
+                
+            '''
             elif self.role_type == '村民':
                 strategy_file = 'prompts/prompt_villager_strategy.yaml'
             else:
                 # 神职角色（预言家、女巫、猎人）使用神职策略
                 strategy_file = 'prompts/prompt_god_strategy.yaml'
-                
-            with open(strategy_file, 'r', encoding='utf-8') as strategy_file:
-                strategy_rules = yaml.safe_load(strategy_file)
-                prompt_dict.update(strategy_rules)
+            '''
             
             if extra_data:
                 prompt_dict.update(extra_data)

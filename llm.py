@@ -21,15 +21,66 @@ class BaseLlm():
         self.model_name = model_name
         self.force_json = force_json
         self.timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        
+
+    def prepare_messages(self, message, chat_history):
+        messages = []
+        for msg in chat_history:
+            messages.append({"role": "assistant" if msg["role"] == "bot" else "user", "content": msg["content"]})
+        messages.append({"role": "user", "content": message})
+        return messages
+
+    def openai_like_generate(self, messages, stream=True, extra_body=None, **kwargs):
+        try:
+            params = {"model": self.model_name, "messages": messages, "stream": stream}
+            if extra_body:
+                params["extra_body"] = extra_body
+            params.update(kwargs)
+            response = self.client.chat.completions.create(**params)
+            if stream:
+                full_response = ""
+                for chunk in response:
+                    if chunk.choices and hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        full_response += content
+                        print(content, end="", flush=True)
+                return full_response, None
+            else:
+                return response.choices[0].message.content, None
+        except Exception as e:
+            return None, str(e)
+
     def generate(self, message, chat_history=[]):
         pass
 
     def get_response(self, message, chat_history=[]):
+        max_retries = 3
+        retry_count = 0
         print(f" ---  请求LLM {self.model_name} ---")
         print(message)
         print("---")
-        resp, reason = self.generate(message, chat_history)
+        
+        while retry_count < max_retries:
+            try:
+                resp, reason = self.generate(message, chat_history)
+                if resp is None:
+                    raise Exception(reason if reason else "未知错误")
+                break
+            except Exception as e:
+                retry_count += 1
+                if retry_count >= max_retries:
+                    logger.error(f"在尝试{max_retries}次后仍然失败。错误: {str(e)}")
+                    resp = None
+                    reason = str(e)
+                    break
+                logger.warning(f"发生错误: {str(e)}。正在进行第{retry_count}次重试...")
+                import time
+                time.sleep(retry_count * 2)  # 指数退避
+        
+        if reason:
+            print(" --- 推理内容 ---")
+            print(reason)
+            print("-------")
+        
         print(" --- LLM 响应 ---")
         print(resp)
         print("-------")
@@ -64,13 +115,7 @@ class M302Llm(BaseLlm):
         self.timeout = timeout  
 
     def generate(self, message, chat_history=[]):
-        messages = []
-        for msg in chat_history:
-            if msg["role"] == "bot":
-                messages.append({"role": "assistant", "content": msg["content"]})
-            else:
-                messages.append({"role": "user", "content": msg["content"]})
-        messages.append({"role": "user", "content": message})
+        messages = self.prepare_messages(message, chat_history)
         payload = json.dumps({
             "model": self.model_name,
             "reasoning_effort": "high",
@@ -89,15 +134,28 @@ class M302Llm(BaseLlm):
             response = json.loads(data)
             content = response["choices"][0]["message"]["content"]
             # 提取推理内容
-            reasoning_pattern = re.compile(
-                r'> Reasoning\n(.*?)\nReasoned for .*?\n\n',
-                re.DOTALL
-            )
-            match = reasoning_pattern.search(content)
+            reasoning_patterns = [
+                re.compile(r'> Reasoning\n(.*?)\nReasoned for .*?\n\n', re.DOTALL),  # 原始格式
+                re.compile(r'<thinking>(.*?)</thinking>', re.DOTALL),  # 新格式1
+                re.compile(r'<think>(.*?)</think>', re.DOTALL)  # 新格式2
+            ]
+            
+            match = None
+            for pattern in reasoning_patterns:
+                match = pattern.search(content)
+                if match:
+                    break
+                    
             if match:
                 reasoning = match.group(1).strip()
-                print(f"\n[推理过程]\n{reasoning}\n")
-                return content.split('\n\n')[1].strip(), None
+                # 如果是<thinking>格式，直接返回内容，否则按原方式处理
+                if '<thinking>' in content or '<think>' in content:
+                    # 移除<thinking>部分返回剩余内容
+                    clean_content = re.sub(r'<thinking>.*?</thinking>|<think>.*?</think>', '', content, flags=re.DOTALL).strip()
+                    return clean_content, reasoning
+                else:
+                    # 原始格式处理方式
+                    return content.split('\n\n')[1].strip(), None
             return content, None
         except socket.timeout:
             logger.warning("API请求超时")
@@ -113,38 +171,13 @@ class DeepSeekLlm(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False):
         super().__init__(model_name, force_json)
         self.api_key = api_key
+        self.client = OpenAI(api_key=self.api_key, base_url="https://api.deepseek.com", timeout=1800)
 
     def generate(self, message, chat_history=[]):
-        client = OpenAI(api_key=self.api_key, base_url="https://api.deepseek.com", timeout=1800)
-        messages = []
-        if self.force_json:
-            messages = [{"role": "system", "content": "请严格使用JSON格式输出，确保返回的字符串是有效的JSON"}]
-        for msg in chat_history:
-            if msg["role"] == "bot":
-                messages.append({"role": "assistant", "content": msg["content"]})
-            else:
-                messages.append({"role": "user", "content": msg["content"]})
-        messages.append({"role": "user", "content": message})
-
-        response = client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-            stream=False,
-            temperature=1.25
-        )
-        resp = response.choices[0].message.content
-        return resp, None
+        messages = self.prepare_messages(message, chat_history)
+        return self.openai_like_generate(messages, stream=False, temperature=1.25)
 
 
-
-'''
-    可选的模型
-    qwen-max
-    qwen-max-longcontext
-    qwen-plus
-    qwen-long
-    qwen-max-2025-01-25 (qwen2.5 max)
-'''
 class QwenLlm(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False):
         super().__init__(model_name, force_json)
@@ -152,16 +185,7 @@ class QwenLlm(BaseLlm):
         dashscope.api_key = self.api_key
 
     def generate(self, message, chat_history=[]):
-        messages = []
-        if self.force_json:
-            messages = [{"role": "system", "content": "请严格使用JSON格式输出，确保返回的字符串是有效的JSON"}]
-        for msg in chat_history:
-            if msg["role"] == "bot":
-                messages.append({"role": "assistant", "content": msg["content"]})
-            else:
-                messages.append({"role": "user", "content": msg["content"]})
-        messages.append({"role": "user", "content": message})
-
+        messages = self.prepare_messages(message, chat_history)
         response = Generation.call(
             self.model_name,
             messages=messages,
@@ -179,13 +203,6 @@ class QwenLlm(BaseLlm):
                 print(f'请求 ID: {partial_response.request_id}, 状态码: {partial_response.status_code}, 错误代码: {partial_response.code}, 错误信息: {partial_response.message}')
         return full_response, None
 
-'''
-Baichuan4
-Baichuan3-Turbo
-Baichuan3-Turbo-128k
-Baichuan2-Turbo
-Baichuan2-Turbo-192k
-'''
 class BaichuanLlm(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False):
         super().__init__(model_name, force_json)
@@ -193,20 +210,11 @@ class BaichuanLlm(BaseLlm):
         self.api_url = "https://api.baichuan-ai.com/v1/chat/completions"
 
     def generate(self, message, chat_history=[]):
+        messages = self.prepare_messages(message, chat_history)
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}"
         }
-
-        messages = []
-        if self.force_json:
-            messages = [{"role": "system", "content": "请严格使用JSON格式输出，确保返回的字符串是有效的JSON"}]
-        for msg in chat_history:
-            if msg["role"] == "bot":
-                messages.append({"role": "assistant", "content": msg["content"]})
-            else:
-                messages.append({"role": "user", "content": msg["content"]})
-        messages.append({"role": "user", "content": message})
 
         data = {
             "model": self.model_name,
@@ -224,12 +232,6 @@ class BaichuanLlm(BaseLlm):
             raise Exception(f"请求失败: {response.status_code}, {response.text}")
 
 
-
-'''
-glm-3-turbo
-glm-4
-glm-4v
-'''
 class ZhipuLlm(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False):
         super().__init__(model_name, force_json)
@@ -237,33 +239,10 @@ class ZhipuLlm(BaseLlm):
         self.client = ZhipuAI(api_key=self.api_key)
 
     def generate(self, message, chat_history=[]):
-        messages = []
-        if self.force_json:
-            messages = [{"role": "system", "content": "请严格使用JSON格式输出，确保返回的字符串是有效的JSON"}]
-        for msg in chat_history:
-            if msg["role"] == "bot":
-                messages.append({"role": "assistant", "content": msg["content"]})
-            else:
-                messages.append({"role": "user", "content": msg["content"]})
-        messages.append({"role": "user", "content": message})
+        messages = self.prepare_messages(message, chat_history)
+        return self.openai_like_generate(messages, stream=True)
 
-        response = self.client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-            stream=True
-        )
 
-        full_response = ""
-        for chunk in response:
-            content = chunk.choices[0].delta.content
-            if content is not None:
-                full_response += content
-                #print(content, end='', flush=True)
-        return full_response, None
-
-'''
-moonshot-v1-32k
-'''
 class KimiLlm(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False):
         super().__init__(model_name, force_json)
@@ -271,108 +250,24 @@ class KimiLlm(BaseLlm):
         self.client = OpenAI(api_key=self.api_key, base_url="https://api.moonshot.cn/v1", timeout=1800)
 
     def generate(self, message, chat_history=[]):
-        max_retries = 3
-        retry_count = 0
-        while retry_count < max_retries:
-            try:
-                messages = []
-                if self.force_json:
-                    messages = [{"role": "system", "content": "请严格使用JSON格式输出，确保返回的字符串是有效的JSON"}]
-                for msg in chat_history:
-                    if msg["role"] == "bot":
-                        messages.append({"role": "assistant", "content": msg["content"]})
-                    else:
-                        messages.append({"role": "user", "content": msg["content"]})
-                messages.append({"role": "user", "content": message})
-
-                response = self.client.chat.completions.create(
-                    model=self.model_name,
-                    messages=messages,
-                    stream=True
-                )
-
-                full_response = ""
-                for chunk in response:
-                    content = chunk.choices[0].delta.content
-                    if content is not None:
-                        full_response += content
-                return full_response, None
-
-            except Exception as e:
-                retry_count += 1
-                if retry_count >= max_retries:
-                    print(f"在尝试{max_retries}次后仍然失败。错误: {str(e)}")
-                    return None, str(e)
-                print(f"发生错误: {str(e)}。正在进行第{retry_count}次重试...")
-                import time
-                time.sleep(retry_count * 2)  # 指数退避
+        messages = self.prepare_messages(message, chat_history)
+        return self.openai_like_generate(messages, stream=True)
 
 
-'''
-豆包API支持的模型:
-DouBao-2.7B
-DouBao-7B
-DouBao-1.5-pro-32k
-'''
 class DouBaoLlm(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False):
         super().__init__(model_name, force_json)
         self.api_key = api_key
         self.client = OpenAI(
-            # 替换为您需要调用的模型服务Base Url
-            base_url="https://ark.cn-beijing.volces.com/api/v3/",
-            # 环境变量中配置您的API Key
-            api_key=self.api_key
-        )
-
-    def generate(self, message, chat_history=[]):
-        messages = []
-        if self.force_json:
-            messages = [{"role": "system", "content": "请严格使用JSON格式输出，确保返回的字符串是有效的JSON"}]
-        for msg in chat_history:
-            if msg["role"] == "bot":
-                messages.append({"role": "assistant", "content": msg["content"]})
-            else:
-                messages.append({"role": "user", "content": msg["content"]})
-        messages.append({"role": "user", "content": message})
-
-        try:
-            stream = self.client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-                stream=True,
+                base_url='https://ark.cn-beijing.volces.com/api/v3/',
+                api_key=self.api_key
             )
 
-            full_response = ""
-            reasoning_content = ""
-            for chunk in stream:
-                if not chunk.choices:
-                    continue
-                delta = chunk.choices[0].delta
-                try:
-                    if hasattr(delta, 'reasoning_content') and delta.reasoning_content:
-                        content = delta.reasoning_content
-                        reasoning_content += content
-                        print(content, end="", flush=True)
-                    elif hasattr(delta, 'content') and delta.content:
-                        content = delta.content
-                        full_response += content
-                        print(content, end="", flush=True)
-                except Exception as e:
-                    logger.warning(f"处理chunk时出现警告: {str(e)}")
-                    continue
-            print()
-
-            return full_response, reasoning_content
-        except Exception as e:
-            logger.error(f"豆包API调用失败: {str(e)}")
-            return None, str(e)
+    def generate(self, message, chat_history=[]):
+        messages = self.prepare_messages(message, chat_history)
+        return self.openai_like_generate(messages, stream=True)
 
 
-'''
-腾讯混元大模型
-hunyuan-turbo
-'''
 class HunyuanLlm(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False):
         super().__init__(model_name, force_json)
@@ -384,47 +279,14 @@ class HunyuanLlm(BaseLlm):
         )
 
     def generate(self, message, chat_history=[]):
-        messages = []
-        if self.force_json:
-            messages = [{"role": "system", "content": "请严格使用JSON格式输出，确保返回的字符串是有效的JSON"}]
-        for msg in chat_history:
-            if msg["role"] == "bot":
-                messages.append({"role": "assistant", "content": msg["content"]})
-            else:
-                messages.append({"role": "user", "content": msg["content"]})
-        messages.append({"role": "user", "content": message})
-
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model_name,
-                messages=messages,
-                stream=True,
-                extra_body={
-                    "enable_enhancement": True
-                }
-            )
-
-            full_response = ""
-            for chunk in response:
-                if chunk.choices[0].delta.content:
-                    content = chunk.choices[0].delta.content
-                    full_response += content
-                    print(content, end='', flush=True)
-            return full_response, None
-        except Exception as e:
-            logger.error(f"混元API调用失败: {str(e)}")
-            return None, str(e)
+        messages = self.prepare_messages(message, chat_history)
+        return self.openai_like_generate(messages, stream=True, extra_body={"enable_enhancement": True})
 
 
-'''
-硅基流动的推理模型: 
-https://api.siliconflow.cn/v1/
-deepseek-ai/DeepSeek-R1
-Pro/deepseek-ai/DeepSeek-R1 (比较快)
-'''
 class SiliconReasoner(BaseLlm):
     def __init__(self, model_name, api_key, force_json=False):
         super().__init__(model_name, force_json)
+        
         self.client = OpenAI(
                 base_url='https://api.siliconflow.cn/v1/',
                 api_key=api_key,
@@ -433,18 +295,8 @@ class SiliconReasoner(BaseLlm):
 
     def generate(self, message, chat_history=[]):
         messages = [{"role": "user", "content": message}]
-        response = self.client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-            stream=True, 
-            max_tokens=4096
-        )
-        content = ""
-        for chunk in response:
-            if chunk.choices[0].delta.content:
-                content += chunk.choices[0].delta.content
-                print(chunk.choices[0].delta.content, end='', flush=True)
-        return content, None
+        return self.openai_like_generate(messages, stream=True, max_tokens=4096)
+
 
 class HumanLlm(BaseLlm):
     def __init__(self, model_name):
@@ -458,7 +310,9 @@ class HumanLlm(BaseLlm):
 M302LLM_SUPPORTED_MODELS = [
     "o3-mini",
     "o3-mini-2025-01-31",
-    "gemini-2.0-flash-thinking-exp-01-21"
+    "gemini-2.0-flash-thinking-exp-01-21",
+    "claude-3-7-sonnet-latest",
+    "claude-3-7-sonnet-thinking"
     ]
 
 SILICONFLOW_SUPPORTED_MODELS = [

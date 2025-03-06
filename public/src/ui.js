@@ -309,7 +309,7 @@ class Ui {
             await this.typeWriterEffect(currentLines.join('\n'), this.speakTextSpirit);
             
             if (is_auto_play) {
-                await sleep(1000);
+                await sleep(100);
                 // 等待用户按回车键继续
             } else {
                 await new Promise(resolve => {

@@ -93,22 +93,29 @@ class Round:
 
     def get_events(self, show_all = False):
         events = {
-            "day": f"第{self.day_count+1}天",
-            "day_events": [],
-            "night_events": []
+            "时间": f"第{self.day_count+1}天",
+            "白天事件": [],
+            "夜晚事件": []
         }
         for event in self.day_events:
             if show_all:
-                events["day_events"].append(event.desc())
+                events["白天事件"].append(event.desc())
             else:
                 if event.is_public:
-                    events["day_events"].append(event.desc())
+                    events["白天事件"].append(event.desc())
         for event in self.night_events:
             if show_all:
-                events["night_events"].append(event.desc())
+                events["夜晚事件"].append(event.desc())
             else:
                 if event.is_public:
-                    events["night_events"].append(event.desc())
+                    events["夜晚事件"].append(event.desc())
+        if self.day_count == 1:
+            events["白天事件"].append("此时游戏还没开始,不会发言和投票事件")
+        
+        if not events["白天事件"]:
+            del events["白天事件"]
+        if not events["夜晚事件"]:
+            del events["夜晚事件"]
         return events
     
     def add_event(self, is_daytime, event):
