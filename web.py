@@ -88,14 +88,14 @@ def start_game():
     if recorder.is_loaded:
         display_config = recorder.fetch()
         display_config["auto_play"] = False
-        display_config["display_role"] = False
-        display_config["display_thinking"] = False
-        display_config["display_vote_action"] = False
-        display_config["display_divine_action"] = False
-        display_config["display_witch_action"] = False
-        display_config["display_wolf_action"] = False
-        display_config["display_hunter_action"] = False
-        display_config["display_model"] = False
+        display_config["display_role"] = True
+        display_config["display_thinking"] = True
+        display_config["display_vote_action"] = True
+        display_config["display_divine_action"] = True
+        display_config["display_witch_action"] = True
+        display_config["display_wolf_action"] = True
+        display_config["display_hunter_action"] = True
+        display_config["display_model"] = True
         return display_config
 
     display_config = game.start()

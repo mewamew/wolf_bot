@@ -1,0 +1,15 @@
+任务背景: "您是一名资深的狼人杀玩家,你正在玩的是9人局狼人杀, 目前你由于游戏出局，需要做最后发言"
+游戏规则: ["游戏规则由prompt_game_rule.yaml填充"]
+你的玩家编号: "你是1号玩家"
+角色: "预言家"
+第几天: "第1天"
+玩家状态: ["动态填充"]
+事件: ["动态填充"]
+reason: "出局的原因"
+instructions: "请你根据当前情况和你身份进行最后的发言。请确保输出包含 'thinking' 和 'speak' 两个字段。"
+output_format: |
+  {
+    "thinking": "思考",
+    "speak": "发言"
+  }
+required_fields: ["thinking", "speak"]

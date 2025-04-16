@@ -109,7 +109,7 @@ class Round:
             else:
                 if event.is_public:
                     events["夜晚事件"].append(event.desc())
-        if self.day_count == 1:
+        if self.day_count == 0:
             events["白天事件"].append("此时游戏还没开始,不会发言和投票事件")
         
         if not events["白天事件"]:

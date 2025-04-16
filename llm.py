@@ -306,10 +306,20 @@ class HumanLlm(BaseLlm):
     def generate(self, message, chat_history=[]):
         pass
 
+class OpenAILlm(BaseLlm):
+    def __init__(self, model_name, api_key, force_json=False):
+        super().__init__(model_name, force_json)
+        self.api_key = api_key
+        self.client = OpenAI(api_key=self.api_key, timeout=1800)
+
+    def generate(self, message, chat_history=[]):
+        messages = self.prepare_messages(message, chat_history)
+        return self.openai_like_generate(messages, stream=True)
+
 
 M302LLM_SUPPORTED_MODELS = [
-    "o3-mini",
-    "o3-mini-2025-01-31",
+    "m302/o3-mini",
+    "m302/o3-mini-2025-01-31",
     "gemini-2.0-flash-thinking-exp-01-21",
     "claude-3-7-sonnet-latest",
     "claude-3-7-sonnet-thinking"
@@ -320,6 +330,75 @@ SILICONFLOW_SUPPORTED_MODELS = [
     "Pro/deepseek-ai/DeepSeek-R1"
     ]
 
+OPENAI_SUPPORTED_MODELS = [
+    "gpt-4.1",
+    "gpt-4.1-mini",
+    "gpt-4.1-nano",
+    "gpt-4o",
+    "gpt-4o-mini",
+    "o1-mini",
+    "o3-mini"
+]
+
+XAI_SUPPORTED_MODELS = [
+    "grok-3-latest"
+]
+
+XAIREASON_SUPPORTED_MODELS = [
+    "grok-3-mini-beta",
+    "grok-3-mini-fast-beta"
+]
+
+class XAiLlm(BaseLlm):
+    def __init__(self, model_name, api_key, force_json=False):
+        super().__init__(model_name, force_json)
+        self.api_key = api_key
+        self.client = OpenAI(
+            api_key=self.api_key,
+            base_url="https://api.x.ai/v1",
+            timeout=1800
+        )
+        
+    def generate(self, message, chat_history=[]):
+        messages = self.prepare_messages(message, chat_history)
+        return self.openai_like_generate(messages, stream=True)
+
+
+class XAIReason(BaseLlm):
+    def __init__(self, model_name, api_key, force_json=False):
+        super().__init__(model_name, force_json)
+        self.api_key = api_key
+        self.client = OpenAI(
+            api_key=self.api_key,
+            base_url="https://api.x.ai/v1",
+            timeout=1800
+        )
+        
+    def generate(self, message, chat_history=[]):
+        messages = self.prepare_messages(message, chat_history)
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                reasoning_effort="high",
+                stream=False,
+                temperature=0.7
+            )
+            
+            # 获取主要响应内容
+            content = response.choices[0].message.content
+            
+            # 获取推理内容
+            reasoning_content = None
+            if hasattr(response.choices[0].message, 'reasoning_content'):
+                reasoning_content = response.choices[0].message.reasoning_content
+                print("\n--- 推理过程 ---")
+                print(reasoning_content)
+                print("---------------")
+            
+            return content, reasoning_content
+        except Exception as e:
+            return None, str(e)
 
 def BuildModel(model_name, api_key, force_json=False):
     if model_name in M302LLM_SUPPORTED_MODELS:
@@ -342,5 +421,11 @@ def BuildModel(model_name, api_key, force_json=False):
         return HunyuanLlm(model_name, api_key, force_json)
     elif model_name == "human":
         return HumanLlm(model_name)
+    elif model_name in XAI_SUPPORTED_MODELS:
+        return XAiLlm(model_name, api_key, force_json)
+    elif model_name in XAIREASON_SUPPORTED_MODELS:
+        return XAIReason(model_name, api_key, force_json)
+    elif model_name in OPENAI_SUPPORTED_MODELS:
+        return OpenAILlm(model_name, api_key, force_json)
     else:
         raise ValueError("未知的模型名称:", model_name)

@@ -2,5 +2,6 @@ __pycache__
 *.txt
 test.py
 config.json
+*.json
 .DS_Store
 logs

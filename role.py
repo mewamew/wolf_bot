@@ -49,13 +49,15 @@ class BaseRole:
                 prompt_dict.update(prompt_gamerule)
             
             # 根据角色阵营加载策略规则
+            '''
+            # TODO: 暂时不要加载任何策略
             if self.role_type == '狼人':
                 strategy_file = 'prompts/prompt_wolf_strategy.yaml'
                 with open(strategy_file, 'r', encoding='utf-8') as strategy_file:
                     strategy_rules = yaml.safe_load(strategy_file)
                     prompt_dict.update(strategy_rules)
                 
-            '''
+            
             elif self.role_type == '村民':
                 strategy_file = 'prompts/prompt_villager_strategy.yaml'
             else:

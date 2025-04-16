@@ -335,7 +335,7 @@ class ExecuteAction extends Action {
                 voteStr += `【${vote.player_idx}号玩家 -> 弃票】 \n`;
             }
         }
-        this.game.ui.speak("-- 投票结果 --", this.game.auto_play, voteStr);
+        //this.game.ui.speak("-- 投票结果 --", this.game.auto_play, voteStr);
 
         // 显示每个玩家获得的票数
         for (const [player_id, votes] of Object.entries(voteCount)) {
