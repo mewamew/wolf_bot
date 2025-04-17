@@ -83,6 +83,30 @@ class WerewolfGame:
         with open('config.json', 'r', encoding='utf-8') as f:
             config = json.load(f)
         
+        # 新增：模型分配逻辑
+        if config.get("random_model") and config.get("models"):
+            models = config["models"]
+            n_models = len(models)
+            n_players = len(config["players"])
+            # 先确保每个模型至少分配一次
+            assigned = [i for i in range(n_models)]
+            # 多余玩家随机分配
+            if n_players > n_models:
+                import random
+                assigned += random.choices(range(n_models), k=n_players - n_models)
+            random.shuffle(assigned)
+            assign_idx = 0
+            for idx, player in enumerate(config["players"]):
+                # 如果原本配置的是human则不分配模型
+                if str(player.get("model_name", "")).lower() == "human":
+                    player["model_name"] = "human"
+                    player["api_key"] = ""
+                else:
+                    model = models[assigned[assign_idx]]
+                    player["model_name"] = model["model_name"]
+                    player["api_key"] = model["api_key"]
+                    assign_idx += 1
+
         if config["randomize_roles"]:
             random.shuffle(roles)
         else:
@@ -90,11 +114,9 @@ class WerewolfGame:
                 role_str = config["players"][i].get("role")
                 if not role_str:
                     raise ValueError(f"玩家 {i} 没有设置角色")
-                
                 role_class = role_classes.get(role_str.lower())
                 if not role_class:
                     raise ValueError(f"无效的角色 '{role_str}' 对玩家 {i}")
-                
                 roles[i] = role_class
                 
         # 使用配置文件中的模型和API key

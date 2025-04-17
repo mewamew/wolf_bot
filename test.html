@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solar System – Three.js</title>
+    <style>
+      /* Reset & basic layout */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
+          "Open Sans", "Helvetica Neue", sans-serif;
+      }
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
+      #canvas-container {
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+      canvas {
+        display: block; /* removes scrollbars */
+      }
+
+      /* UI Overlay */
+      .control-panel {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        backdrop-filter: blur(6px);
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        z-index: 10;
+      }
+      .control-panel label {
+        display: flex;
+        flex-direction: column;
+        font-size: 0.9rem;
+        gap: 0.25rem;
+      }
+      .control-panel input[type="range"] {
+        width: 200px;
+      }
+      .info-panel {
+        position: fixed;
+        bottom: 1rem;
+        left: 1rem;
+        max-width: clamp(280px, 35vw, 420px);
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        padding: 1rem 1.25rem;
+        border-radius: 0.75rem;
+        backdrop-filter: blur(6px);
+        font-size: 0.9rem;
+        line-height: 1.4;
+        z-index: 10;
+      }
+      .info-panel h2 {
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+      }
+      .info-panel p {
+        margin-bottom: 0.5rem;
+      }
+      .info-panel .hint {
+        opacity: 0.7;
+        font-size: 0.8rem;
+      }
+
+      /* Accessibility helpers (screen reader only) */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-container"></div>
+
+    <!-- Control Panel -->
+    <div class="control-panel" role="region" aria-label="Simulation controls">
+      <label>
+        Simulation Speed
+        <input
+          id="speed-slider"
+          type="range"
+          min="0"
+          max="5"
+          step="0.1"
+          value="1"
+          aria-valuemin="0"
+          aria-valuemax="5"
+          aria-valuenow="1"
+        />
+      </label>
+      <button id="toggle-button" aria-pressed="false">Pause</button>
+    </div>
+
+    <!-- Information Panel -->
+    <div class="info-panel" role="region" aria-live="polite">
+      <h2>Welcome 🚀</h2>
+      <p>
+        Drag to rotate, scroll to zoom. Click a planet to learn more about it. Adjust the
+        simulation speed with the slider.
+      </p>
+      <p class="hint">Press <strong>H</strong> anytime for keyboard shortcuts.</p>
+    </div>
+
+    <!-- Screen reader instructions (hidden visually) -->
+    <p class="sr-only" id="sr-instructions">
+      Use arrow keys to rotate the view and plus/minus keys to zoom in or out. Press space to
+      pause or play the simulation.
+    </p>
+
+    <script type="module">
+      import * as THREE from "https://unpkg.com/three@0.162.0/build/three.module.js";
+      import { OrbitControls } from "https://unpkg.com/three@0.162.0/examples/jsm/controls/OrbitControls.js";
+
+      const container = document.getElementById("canvas-container");
+
+      /* ---------- Scene Setup ---------- */
+      const scene = new THREE.Scene();
+
+      // Starfield background (large inverted sphere)
+      const starGeometry = new THREE.SphereGeometry(500, 64, 64);
+      const starMaterial = new THREE.MeshBasicMaterial({
+        map: new THREE.TextureLoader().load(
+          "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/galaxy_starfield.png"
+        ),
+        side: THREE.BackSide,
+      });
+      const starfield = new THREE.Mesh(starGeometry, starMaterial);
+      scene.add(starfield);
+
+      const camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      camera.position.set(-90, 60, 140); // angled view for context
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(renderer.domElement);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxDistance = 400;
+      controls.minDistance = 20;
+
+      /* ---------- Lighting ---------- */
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+      scene.add(ambientLight);
+
+      /* Sun as point light */
+      const pointLight = new THREE.PointLight(0xffffff, 2, 0, 2);
+      scene.add(pointLight);
+
+      /* ---------- Planet Data ---------- */
+      const planetData = [
+        {
+          name: "Mercury",
+          radius: 0.38,
+          distance: 12,
+          texture: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/mercury.jpg",
+          orbitalPeriod: 88, // Earth days
+        },
+        {
+          name: "Venus",
+          radius: 0.95,
+          distance: 18,
+          texture: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/venus.jpg",
+          orbitalPeriod: 225,
+        },
+        {
+          name: "Earth",
+          radius: 1,
+          distance: 24,
+          texture: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg",
+          orbitalPeriod: 365,
+        },
+        {
+          name: "Mars",
+          radius: 0.53,
+          distance: 30,
+          texture: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/mars_1k_color.jpg",
+          orbitalPeriod: 687,
+        },
+        {
+          name: "Jupiter",
+          radius: 11.2,
+          distance: 42,
+          texture: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/jupiter.jpg",
+          orbitalPeriod: 4333,
+        },
+        {
+          name: "Saturn",
+          radius: 9.45,
+          distance: 54,
+          texture: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/saturn.jpg",
+          ring: {
+            innerRadius: 11,
+            outerRadius: 18,
+            texture: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/saturnringcolor.jpg",
+          },
+          orbitalPeriod: 10759,
+        },
+        {
+          name: "Uranus",
+          radius: 4,
+          distance: 66,
+          texture: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/uranus.jpg",
+          orbitalPeriod: 30687,
+        },
+        {
+          name: "Neptune",
+          radius: 3.88,
+          distance: 78,
+          texture: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/neptune.jpg",
+          orbitalPeriod: 60190,
+        },
+      ];
+
+      /* ---------- Sun ---------- */
+      const sunTexture = new THREE.TextureLoader().load(
+        "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/sun.jpg"
+      );
+      const sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture });
+      const sunGeometry = new THREE.SphereGeometry(10, 64, 64);
+      const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+      scene.add(sun);
+
+      /* ---------- Planets & Rings ---------- */
+      const textureLoader = new THREE.TextureLoader();
+      const planetPivots = []; // to track orbits
+      const planetMeshes = []; // for interaction
+
+      planetData.forEach((planet) => {
+        const pivot = new THREE.Object3D();
+        scene.add(pivot);
+        planetPivots.push({ pivot, data: planet });
+
+        const geometry = new THREE.SphereGeometry(planet.radius, 32, 32);
+        const material = new THREE.MeshStandardMaterial({
+          map: textureLoader.load(planet.texture),
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.x = planet.distance;
+        mesh.name = planet.name;
+        pivot.add(mesh);
+        planetMeshes.push(mesh);
+
+        // Saturn rings (optional)
+        if (planet.ring) {
+          const ringGeometry = new THREE.RingGeometry(
+            planet.ring.innerRadius,
+            planet.ring.outerRadius,
+            64
+          );
+          const ringTexture = textureLoader.load(planet.ring.texture);
+          const ringMaterial = new THREE.MeshBasicMaterial({
+            map: ringTexture,
+            side: THREE.DoubleSide,
+            transparent: true,
+          });
+          const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+          ring.rotation.x = -Math.PI / 2;
+          pivot.add(ring);
+        }
+      });
+
+      /* ---------- Interaction ---------- */
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      const infoPanel = document.querySelector(".info-panel");
+
+      function updateInfoPanel(planetName) {
+        if (!planetName) {
+          infoPanel.innerHTML = `
+            <h2>Welcome 🚀</h2>
+            <p>
+              Drag to rotate, scroll to zoom. Click a planet to learn more about it. Adjust the
+              simulation speed with the slider.
+            </p>
+            <p class="hint">Press <strong>H</strong> anytime for keyboard shortcuts.</p>
+          `;
+          return;
+        }
+        const data = planetData.find((p) => p.name === planetName);
+        infoPanel.innerHTML = `
+          <h2>${data.name}</h2>
+          <p>Average distance from Sun: <strong>${data.distance} AU (scaled)</strong></p>
+          <p>Orbital period: <strong>${data.orbitalPeriod} Earth days</strong></p>
+          <p class="hint">Click elsewhere to close</p>
+        `;
+      }
+
+      function onClick(event) {
+        // Normalize mouse coords (-1 to 1)
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(planetMeshes);
+        if (intersects.length > 0) {
+          updateInfoPanel(intersects[0].object.name);
+        } else {
+          updateInfoPanel();
+        }
+      }
+
+      window.addEventListener("click", onClick);
+
+      /* ---------- Simulation Controls ---------- */
+      const speedSlider = document.getElementById("speed-slider");
+      let simulationSpeed = parseFloat(speedSlider.value);
+
+      speedSlider.addEventListener("input", (e) => {
+        simulationSpeed = parseFloat(e.target.value);
+        e.target.setAttribute("aria-valuenow", simulationSpeed);
+      });
+
+      const toggleBtn = document.getElementById("toggle-button");
+      let paused = false;
+      toggleBtn.addEventListener("click", () => {
+        paused = !paused;
+        toggleBtn.textContent = paused ? "Play" : "Pause";
+        toggleBtn.setAttribute("aria-pressed", String(paused));
+      });
+
+      /* Keyboard shortcuts */
+      window.addEventListener("keydown", (e) => {
+        if (e.key === " ") {
+          // Space toggles play/pause
+          e.preventDefault();
+          toggleBtn.click();
+        } else if (e.key.toLowerCase() === "h") {
+          infoPanel.classList.toggle("hidden");
+        }
+      });
+
+      /* ---------- Responsiveness ---------- */
+      function onResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+      window.addEventListener("resize", onResize);
+
+      /* ---------- Animation Loop ---------- */
+      const clock = new THREE.Clock();
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        if (!paused) {
+          const delta = clock.getDelta();
+          planetPivots.forEach(({ pivot, data }) => {
+            const angularSpeed = (2 * Math.PI) / data.orbitalPeriod; // rad per Earth day
+            pivot.rotation.y += angularSpeed * delta * 60 * simulationSpeed; // 60 = time scale for visual speed
+          });
+        }
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      /* ---------- Accessibility: announce instructions on load ---------- */
+      setTimeout(() => {
+        const srInstructions = document.getElementById("sr-instructions");
+        srInstructions.setAttribute("aria-live", "assertive");
+      }, 1000);
+    </script>
+  </body>
+</html>
