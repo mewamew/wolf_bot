@@ -302,12 +302,12 @@ class Wolf(BaseRole):
 class Witch(BaseRole):
     def __init__(self, player_index, model_name, api_key,  game):
         super().__init__(player_index, "女巫", model_name, api_key,  game)
-        self.cured_someone = -1
+        self.cured_someone = 0
         self.poisoned_someone = -1
     
     def make_extra_data(self):
         extra_data = {
-            'cured_someone': f'已经使用解药救过{self.cured_someone}号玩家，不允许再次使用解药技能' if self.cured_someone != -1 else "还没使用过救治技能",
+            'cured_someone': f'已经使用解药救过{self.cured_someone}号玩家，不允许再次使用解药技能' if self.cured_someone != 0 else "还没使用过救治技能",
             'poisoned_someone': f'已经使用毒药杀了{self.poisoned_someone}号玩家， 不允许再次使用解药技能' if self.poisoned_someone != -1 else "还没使用过毒杀技能"
         }
         return extra_data
@@ -334,6 +334,6 @@ class Witch(BaseRole):
             extra_data['今晚发生了什么'] = "没有人将被杀害"
         resp_dict = self.handle_action('prompts/prompt_cure_or_poison.yaml', extra_data)
         if resp_dict:
-            self.cured_someone = someone_will_be_killed if resp_dict['cure'] != -1 else self.cured_someone
+            self.cured_someone = someone_will_be_killed if resp_dict['cure'] == 1 else 0
             self.poisoned_someone = resp_dict['poison'] if resp_dict['poison'] != -1 else self.poisoned_someone
             return resp_dict
